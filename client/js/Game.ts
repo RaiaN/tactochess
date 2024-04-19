@@ -6,22 +6,11 @@
 
 import { Scene } from 'phaser';
 import { Player } from './Player';
-
-interface GridCell {
-    x: number;
-    y: number;
-}
+import { Piece } from './Piece';
+import { GridCell } from './Grid';
 
 export class TactonGame extends Scene {
     background: Phaser.GameObjects.TileSprite;
-    notification: string;
-    spellCooldown: number;
-    gold: number;
-    xp: number;
-    xpToNext: number;
-    goldForBoss: number;
-    bossSpawned: boolean;
-    bossColorIndex: number;
     
     playerAttacks: any;
     playerSpells: any;
@@ -30,17 +19,15 @@ export class TactonGame extends Scene {
     music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     controls: { up: Phaser.Input.Keyboard.Key; left: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key; spell: Phaser.Input.Keyboard.Key; };
     collectables: any;
-    notificationLabel: any;
-    xpLabel: any;
-    goldLabel: any;
-    healthLabel: any;
-    spellLabel: any;
 
     player: Player;
     bosses: Phaser.Physics.Arcade.Group;
     enemies: Phaser.Physics.Arcade.Group;
     obstacles: Phaser.Physics.Arcade.StaticGroup;
     corpses: any;
+
+    whitePieces: Piece[] = [];
+    blackPieces: Piece[] = [];
 
     dragonSound: any;
     levelSound: any;
@@ -86,32 +73,23 @@ export class TactonGame extends Scene {
     create () {
 
         // Generate in order of back to front
-        var worldSize = 2048;
+        var worldSize = 512;
         this.physics.world.setBounds(0, 0, worldSize, worldSize);
 
-        this.background = this.add.tileSprite(0, 0, worldSize / 2, worldSize / 2, 'tiles', 65);
+        this.background = this.add.tileSprite(0, 0, worldSize, worldSize, 'tiles', 17);
         this.background.scale = 4;
+        this.background.setOrigin(0);
         this.generateGrid(worldSize);
 
-        // Initialize data
-        this.notification = '';
-        this.spellCooldown = 0;
-        this.gold = 0;
-        this.xp = 0;
-        this.xpToNext = 20;
-        this.goldForBoss = 5000;
-        this.bossSpawned = false;
-        this.bossColorIndex = 0;
-
         // Generate objects
-        this.generateObstacles();
-        this.generateCollectables();
+        // this.generateObstacles();
+        // this.generateCollectables();
 
-        this.corpses = this.add.group();
+        // this.corpses = this.add.group();
 
         // Generate player and set camera to follow
-        this.player = this.generatePlayer();
-        this.cameras.main.startFollow(this.player.object!);
+        // this.player = this.generatePlayer();
+        // this.cameras.main.startFollow(this.player.object!);
 
         // this.playerAttacks = this.generateAttacks('sword', 1, null, null);
         // this.playerSpells = this.generateAttacks('spell', 1, null, null);
@@ -119,10 +97,13 @@ export class TactonGame extends Scene {
         // this.bossAttacks = this.generateAttacks('fireball', 1, 2000, 300);
 
         // Generate enemies - must be generated after player and player.level
-        this.generateEnemies(100);
+        // this.generateEnemies(100);
+
+        this.spawnWhitePieces();
+        this.spawnBlackPieces();
 
         // Generate bosses
-        this.bosses = this.physics.add.group();
+        // this.bosses = this.physics.add.group();
 
         // Music
 		this.music = this.sound.add('overworldMusic');
@@ -167,7 +148,7 @@ export class TactonGame extends Scene {
     }
 
     playerHandler() {
-        this.playerMovementHandler();
+        // this.playerMovementHandler();
         
         
         /*if (this.player.alive) {
@@ -328,25 +309,6 @@ export class TactonGame extends Scene {
         var style = { font: '10px Arial', fill: '#fff', align: 'center' };
         this.spellLabel = this.add.text(230, this.game.height - 25, text, style);
         this.spellLabel.fixedToCamera = true;*/
-    }
-
-    levelUp() {
-
-        /*this.player.level++;
-        this.player.vitality += 5;
-        this.player.health += 5;
-        this.player.strength += 1;
-        this.player.speed += 1;
-        this.xp -= this.xpToNext;
-        this.xpToNext = Math.floor(this.xpToNext * 1.1);
-        this.notification = this.player.name + ' has advanced to level ' + this.player.level + '!';
-        this.levelSound.play();
-        var emitter = this.game.add.emitter(this.player.x, this.player.y, 100);
-        emitter.makeParticles('levelParticle');
-        emitter.minParticleSpeed.setTo(-200, -200);
-        emitter.maxParticleSpeed.setTo(200, 200);
-        emitter.gravity = 0;
-        emitter.start(true, 1000, null, 100);*/
     }
 
     attack (attacker, attacks) {
@@ -556,6 +518,35 @@ export class TactonGame extends Scene {
         // entity.corpseSprite = corpseSprite;
 
         return entity;
+    }
+
+    spawnWhitePieces () {
+
+        const whiteFirstRowOffset = 6 * 8;
+
+        // generate first row
+        for (var i = 0; i < 8; i++) {
+            let cell: GridCell = this.grid[whiteFirstRowOffset + i];
+
+            this.whitePieces.push(new Piece(this, cell, true));
+        }
+
+        // generate second row
+    }
+
+    spawnBlackPieces () {
+
+        const blackFirstRowOffset = 8;
+
+        // generate first row
+        for (var i = 0; i < 8; i++) {
+            let cell: GridCell = this.grid[blackFirstRowOffset + i];
+
+            this.blackPieces.push(new Piece(this, cell, false));
+        }
+
+        // generate second row
+        
     }
 
     generateEnemies (count) {
@@ -934,16 +925,16 @@ export class TactonGame extends Scene {
 
     generateGrid (worldSize) {
         this.grid = [];
-        var gridSize = 32;
-        var grids = Math.floor(worldSize / gridSize);
-        for (let x = 0; x < grids; x++) {
-            for (let y = 0; y < grids; y++) {
-                var gridX = x * gridSize;
-                var gridY = y * gridSize;
+        var cellSize = 64;
+        var rowCount = Math.floor(worldSize / cellSize);
+        for (let y = 0; y < rowCount; y++) {
+            for (let x = 0; x < rowCount; x++) {
+                var gridX = x * cellSize;
+                var gridY = y * cellSize;
                 this.grid.push({x:gridX, y:gridY});
             }
         }
-        this.shuffle(this.grid);
+        // this.shuffle(this.grid);
     }
 
     getRandomLocation () {

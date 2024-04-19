@@ -22,13 +22,13 @@ async function setupDiscordSdk() {
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config = {
     type: Phaser.AUTO,
-    width: 1024,
-    height: 384,
+    width: 512,
+    height: 512,
     parent: 'game-container',
     backgroundColor: '#028af8',
     scale: {
       // TODO: make full screen? Test in Discord
-      // mode: Phaser.Scale.FIT,
+      // mode: Phaser.Scale.NO_CENTER,
       autoCenter: Phaser.Scale.CENTER_HORIZONTALLY
     },
     input: {

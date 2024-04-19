@@ -15,8 +15,8 @@ export class Player
     {
         this.scene = scene;
 
-        let centerX = this.scene.physics.world.bounds.centerX;
-        let centerY = this.scene.physics.world.bounds.centerY;
+        let centerX = 0; // this.scene.physics.world.bounds.centerX;
+        let centerY = 0; // this.scene.physics.world.bounds.centerY;
 
         this.object = this.scene.physics.add.sprite(centerX, centerY, 'characters');
 
