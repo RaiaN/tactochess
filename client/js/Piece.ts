@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GridCell } from './Grid';
+import { GridCell } from './Cell';
 
 type PieceTraits = {
     speed: number;
@@ -10,18 +10,18 @@ type PieceTraits = {
 export class Piece
 {
     scene: Phaser.Scene;
-    location: GridCell;
+    cell: GridCell;
 
     object: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | null;
     traits: PieceTraits;
     
-    constructor(scene: Phaser.Scene, location: GridCell, isWhite: boolean)
+    constructor(scene: Phaser.Scene, cell: GridCell, isWhite: boolean)
     {
         this.scene = scene;
-        this.location = location;
+        this.cell = cell;
 
-        this.object = this.scene.physics.add.sprite(this.location.x, this.location.y, 'characters');
-        // offset sprite
+        this.object = this.scene.physics.add.sprite(this.cell.worldLocation.x, this.cell.worldLocation.y, 'characters');
+        // sprite offset
         this.object.setOrigin(0, 0);
 
         if (isWhite) {

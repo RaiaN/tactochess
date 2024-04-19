@@ -7,7 +7,7 @@
 import { Scene } from 'phaser';
 import { Player } from './Player';
 import { Piece } from './Piece';
-import { GridCell } from './Grid';
+import { CellLocation, GridCell } from './Cell';
 
 export class TactonGame extends Scene {
     background: Phaser.GameObjects.TileSprite;
@@ -76,9 +76,9 @@ export class TactonGame extends Scene {
         var worldSize = 512;
         this.physics.world.setBounds(0, 0, worldSize, worldSize);
 
-        this.background = this.add.tileSprite(0, 0, worldSize, worldSize, 'tiles', 17);
-        this.background.scale = 4;
-        this.background.setOrigin(0);
+        // this.background = this.add.tileSprite(0, 0, worldSize, worldSize, 'tiles', 17);
+        // this.background.scale = 4;
+        // this.background.setOrigin(0);
         this.generateGrid(worldSize);
 
         // Generate objects
@@ -924,14 +924,14 @@ export class TactonGame extends Scene {
     }
 
     generateGrid (worldSize) {
-        this.grid = [];
+        // this.grid = [];
         var cellSize = 64;
         var rowCount = Math.floor(worldSize / cellSize);
         for (let y = 0; y < rowCount; y++) {
             for (let x = 0; x < rowCount; x++) {
                 var gridX = x * cellSize;
                 var gridY = y * cellSize;
-                this.grid.push({x:gridX, y:gridY});
+                this.grid.push(new GridCell(this, {x: x, y: y}, {x: gridX, y: gridY}));
             }
         }
         // this.shuffle(this.grid);
@@ -940,8 +940,8 @@ export class TactonGame extends Scene {
     getRandomLocation () {
 
         var gridIndex = 0;
-        var x = this.grid[gridIndex].x;
-        var y = this.grid[gridIndex].y;
+        var x = this.grid[gridIndex].worldLocation.x;
+        var y = this.grid[gridIndex].worldLocation.y;
         this.grid.splice(gridIndex, 1);
         gridIndex++;
         if (gridIndex === this.grid.length) {
