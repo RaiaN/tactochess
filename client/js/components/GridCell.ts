@@ -43,7 +43,7 @@ export class GridCell {
 
     setPiece(piece: Piece | null) {
         this.piece = piece;
-        this.piece?.setLocation(this.worldLocation);
+        // this.piece?.setLocation(this.worldLocation);
     }
 
     getPiece(): Piece | null {
