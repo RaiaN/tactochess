@@ -1,27 +1,22 @@
 import Phaser from 'phaser';
-import { GridCell } from './Cell';
+import { GridCell, WorldLocation } from './GridCell';
 
 type PieceTraits = {
     speed: number;
 }
 
-
-
 export class Piece
 {
     scene: Phaser.Scene;
-    cell: GridCell;
 
     object: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | null;
     traits: PieceTraits;
     
-    constructor(scene: Phaser.Scene, cell: GridCell, isWhite: boolean)
+    constructor(scene: Phaser.Scene, location: WorldLocation, isWhite: boolean)
     {
         this.scene = scene;
-        this.cell = cell;
 
-        this.object = this.scene.physics.add.sprite(this.cell.worldLocation.x, this.cell.worldLocation.y, 'characters');
-        this.object.setInteractive()
+        this.object = this.scene.physics.add.sprite(location.x, location.y, 'characters');
         // sprite offset
         this.object.setOrigin(0, 0);
 
@@ -48,15 +43,13 @@ export class Piece
         this.object.body.velocity.x = 0;
         this.object.body.velocity.y = 0;
 
-        // Todo: emit event -> cell selected!
-        this.object.on('pointerdown', () => {
-            this.object!.anims.play('left');
-        }, this);
-
-
         this.traits = {
             speed: 125
         }
+    }
+
+    setLocation(newLocation: WorldLocation) {
+        this.object?.setPosition(newLocation.x, newLocation.y);
     }
 
     setUpSpriteAnim(sprite: Phaser.Physics.Arcade.Sprite, spriteKey: string, animKey: string, startFrame: integer, endFrame?: integer, frameRate?: integer, repeat?: integer)
@@ -77,5 +70,13 @@ export class Piece
     destroy() {
         this.object?.destroy();
         this.object = null;
+    }
+
+    select() {
+        this.object?.anims.play('up');
+    }
+
+    unselect() {
+        this.object?.anims.play('down');
     }
 };
