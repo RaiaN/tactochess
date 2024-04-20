@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "colyseus.js": "^0.15.18",
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
     "node-fetch": "^3.3.2"
