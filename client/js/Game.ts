@@ -1,16 +1,13 @@
-// Credits:
-// http://www.gamedevacademy.org/html5-phaser-tutorial-spacehipster-a-space-exploration-game/
-// http://www.joshmorony.com/how-to-create-an-animated-character-using-sprites-in-phaser/
-// http://jschomay.tumblr.com/post/103568304133/tutorial-building-a-polished-html5-space-shooter
-// http://ezelia.com/2014/tutorial-creating-basic-multiplayer-game-phaser-eureca-io
-
 import { Scene } from 'phaser';
-import { Player } from './Player';
-import { Piece } from './Piece';
-import { CellLocation, GridCell } from './Cell';
+import { GridCell } from './components/GridCell';
+import { GameState } from './state/GameState';
+import { GridComponent } from './components/GridComponent';
 
 export class TactonGame extends Scene {
-    background: Phaser.GameObjects.TileSprite;
+    gameState: GameState;
+    grid: GridComponent;
+
+    selectedCell: GridCell | null;
     
     playerAttacks: any;
     playerSpells: any;
@@ -20,14 +17,10 @@ export class TactonGame extends Scene {
     controls: { up: Phaser.Input.Keyboard.Key; left: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key; spell: Phaser.Input.Keyboard.Key; };
     collectables: any;
 
-    player: Player;
     bosses: Phaser.Physics.Arcade.Group;
     enemies: Phaser.Physics.Arcade.Group;
     obstacles: Phaser.Physics.Arcade.StaticGroup;
     corpses: any;
-
-    whitePieces: Piece[] = [];
-    blackPieces: Piece[] = [];
 
     dragonSound: any;
     levelSound: any;
@@ -41,8 +34,6 @@ export class TactonGame extends Scene {
     batSound: any;
     ghostSound: any;
     spiderSound: any;
-    
-    grid: GridCell[] = [];
 
     constructor()
     {
@@ -72,14 +63,19 @@ export class TactonGame extends Scene {
     // Runs once at start of game
     create () {
 
+        // TODO: Server code
+        this.gameState = new GameState();
+         // TODO: colyseus OnJoin()
+        this.gameState.addPlayer('white');
+        this.gameState.addPlayer('black');
+
         // Generate in order of back to front
         var worldSize = 512;
         this.physics.world.setBounds(0, 0, worldSize, worldSize);
 
-        // this.background = this.add.tileSprite(0, 0, worldSize, worldSize, 'tiles', 17);
-        // this.background.scale = 4;
-        // this.background.setOrigin(0);
-        this.generateGrid(worldSize);
+        // Client code (view and interactions)
+        this.grid = new GridComponent(this);
+        this.grid.onCellSelected = (cell) => this.onCellSelected(cell);
 
         // Generate objects
         // this.generateObstacles();
@@ -98,9 +94,6 @@ export class TactonGame extends Scene {
 
         // Generate enemies - must be generated after player and player.level
         // this.generateEnemies(100);
-
-        this.spawnWhitePieces();
-        this.spawnBlackPieces();
 
         // Generate bosses
         // this.bosses = this.physics.add.group();
@@ -127,6 +120,77 @@ export class TactonGame extends Scene {
 
         // Set the camera
         this.showLabels();
+
+        this.gameState.startGame();
+    }
+
+    onCellSelected(cell: GridCell): boolean {
+        console.log('Cell selected: ' + cell.coordinates.x + ',' + cell.coordinates.y);
+
+        let cellOccupier = this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy;
+
+        if (this.selectedCell == null) {
+            if (cellOccupier != this.gameState.currentPlayer) {
+                return false;
+            }
+
+            if (cell.getPiece() == null) {
+                return false;
+            }
+
+            // select 
+            this.selectedCell = cell;
+            this.selectedCell.select();
+
+            // switch to next state: move/attack 
+            // this.gameState.nextTurn();
+        } else {
+            if (cell.getPiece() == null) {
+                // TODO: Piece move animation!
+                this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
+                this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
+                
+                cell.setPiece(this.selectedCell.getPiece()!);
+                
+                // drop active selection
+                this.selectedCell.unselect();
+                this.selectedCell.setPiece(null);
+                this.selectedCell = null;
+
+                console.log('MoveTo:');
+                this.gameState.nextTurn();
+            } else if (cellOccupier == this.gameState.currentPlayer) {
+                this.selectedCell.unselect();
+                this.selectedCell = cell;
+                this.selectedCell.select();
+            } else {
+                // Attack
+                cell.getPiece()?.destroy();
+                this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
+                this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
+                cell.setPiece(this.selectedCell.getPiece());
+
+                // drop active selection
+                this.selectedCell.unselect();
+                this.selectedCell.setPiece(null);
+                this.selectedCell = null;
+
+                console.log('Attack:');
+                this.gameState.nextTurn();
+            }
+        }
+
+        // Handle move/attack
+        if (this.selectedCell != null) {
+            
+        }
+
+        
+
+        // TODO: fire message to server
+        // TODO: server validates desired move can be done!
+
+        return true;
     }
 
     // Checks for actions and changes
@@ -311,7 +375,7 @@ export class TactonGame extends Scene {
         this.spellLabel.fixedToCamera = true;*/
     }
 
-    attack (attacker, attacks) {
+    /*attack (attacker, attacks) {
 
         if (attacker.alive && this.time.now > attacks.next && attacks.countDead() > 0) {
             attacks.next = this.time.now + attacks.rate;
@@ -335,7 +399,7 @@ export class TactonGame extends Scene {
                 this.fireballSound.play();
             }
         }
-    }
+    }*/
 
     /*generateAttacks (name, amount, rate, range) {
 
@@ -486,15 +550,6 @@ export class TactonGame extends Scene {
         this.anims.create(config);
     }
 
-    generatePlayer () {
-
-        // Generate the player
-        // var player = this.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, 'characters');
-
-        let player = new Player(this);
-        return player;
-    }
-
     setStats (entity: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody, name, health, speed, strength, reward, corpseSprite) {
 
         entity.anims.play('down');
@@ -520,36 +575,7 @@ export class TactonGame extends Scene {
         return entity;
     }
 
-    spawnWhitePieces () {
-
-        const whiteFirstRowOffset = 6 * 8;
-
-        // generate first row
-        for (var i = 0; i < 8; i++) {
-            let cell: GridCell = this.grid[whiteFirstRowOffset + i];
-
-            this.whitePieces.push(new Piece(this, cell, true));
-        }
-
-        // generate second row
-    }
-
-    spawnBlackPieces () {
-
-        const blackFirstRowOffset = 8;
-
-        // generate first row
-        for (var i = 0; i < 8; i++) {
-            let cell: GridCell = this.grid[blackFirstRowOffset + i];
-
-            this.blackPieces.push(new Piece(this, cell, false));
-        }
-
-        // generate second row
-        
-    }
-
-    generateEnemies (count) {
+    /*generateEnemies (count) {
 
         this.enemies = this.physics.add.group();
 
@@ -577,9 +603,9 @@ export class TactonGame extends Scene {
         // console.log('Generated ' + enemy.name + ' with ' + enemy.health + ' health, ' + enemy.strength + ' strength, and ' + enemy.speed + ' speed.');
 
         return enemy;
-    }
+    }*/
 
-    generateSkeleton (enemy: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) {
+    /*generateSkeleton (enemy: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) {
 
         this.setUpSpriteAnim(enemy, 'characters', 'down', 9, 11);
         this.setUpSpriteAnim(enemy, 'characters', 'left', 21, 23);
@@ -605,9 +631,9 @@ export class TactonGame extends Scene {
         this.setUpSpriteAnim(enemy, 'characters', 'up', 87, 89);
 
         return this.setStats(enemy, 'Bat', 20, 200, 10, 2, 8);
-    }
+    }*/
 
-    generateObstacles() {
+    /*generateObstacles() {
 
         this.obstacles = this.physics.add.staticGroup();
         // this.obstacles.enableBody = true;
@@ -652,11 +678,11 @@ export class TactonGame extends Scene {
         // obstacle.body.moves = false;
 
         return obstacle;
-    }
+    }*/
 
-    generateCollectables () {
+    /*generateCollectables () {
 
-        /*this.collectables = this.add.group();
+        this.collectables = this.add.group();
         this.collectables.enableBody = true;
         this.collectables.physicsBodyType = Phaser.Physics.ARCADE;
 
@@ -665,12 +691,12 @@ export class TactonGame extends Scene {
             var point = this.getRandomLocation();
             this.generateChest(point);
         }
-        */
-    }
+        
+    }*/
 
-    generateChest (location) {
+    /*generateChest (location) {
 
-        /*
+        
         var collectable = this.collectables.create(location.x, location.y, 'things');
         collectable.scale.setTo(2);
         collectable.animations.add('idle', [6], 0, true);
@@ -680,23 +706,21 @@ export class TactonGame extends Scene {
         collectable.value = Math.floor(Math.random() * 150);
 
         return collectable;
-        */
-    }
+        
+    }*/
 
-    generateGold (enemy) {
-        /*
+    /*generateGold (enemy) {
+        
         var collectable = this.collectables.create(enemy.x, enemy.y, 'tiles');
         collectable.animations.add('idle', [68], 0, true);
         collectable.animations.play('idle');
         collectable.name = 'gold';
         collectable.value = enemy.reward * 2;
         return collectable;
-        */
     }
 
     generatePotion (location) {
 
-        /*
         var rnd = Math.random();
         if (rnd >= 0 && rnd < .7) {
             this.generateHealthPotion(location);
@@ -707,52 +731,46 @@ export class TactonGame extends Scene {
         } else if (rnd >= .9 && rnd < 1) {
             this.generateSpeedPotion(location);
         }
-        */
     }
 
     generateHealthPotion (location) {
-        /*
         var collectable = this.collectables.create(location.x, location.y, 'potions');
         collectable.animations.add('idle', [0], 0, true);
         collectable.animations.play('idle');
         collectable.name = 'healthPotion'
         collectable.value = 20 + Math.floor(Math.random() * 10) + this.player.level;
         return collectable;
-        */
     }
 
     generateVitalityPotion (location) {
 
-        /*var collectable = this.collectables.create(location.x, location.y, 'potions');
+        var collectable = this.collectables.create(location.x, location.y, 'potions');
         collectable.animations.add('idle', [2], 0, true);
         collectable.animations.play('idle');
         collectable.name = 'vitalityPotion'
         collectable.value = 4 + Math.floor(Math.random() * 10);
-        return collectable;*/
+        return collectable;
     }
 
     generateStrengthPotion (location) {
 
-        /*
         var collectable = this.collectables.create(location.x, location.y, 'potions');
         collectable.animations.add('idle', [3], 0, true);
         collectable.animations.play('idle');
         collectable.name = 'strengthPotion'
         collectable.value = 1 + Math.floor(Math.random() * 10);
         return collectable;
-        */
     }
 
     generateSpeedPotion (location) {
 
-        /*
         var collectable = this.collectables.create(location.x, location.y, 'potions');
         collectable.animations.add('idle', [4], 0, true);
         collectable.animations.play('idle');
         collectable.name = 'speedPotion'
         collectable.value = 1 + Math.floor(Math.random() * 10);
         return collectable;
-        */
+        
     }
 
     playSound (name) {
@@ -779,6 +797,7 @@ export class TactonGame extends Scene {
              this.dragonSound.play();
          }
     }
+    */
 
     generateSounds () {
 
@@ -796,7 +815,7 @@ export class TactonGame extends Scene {
         this.spiderSound = this.sound.add('spiderSound');
     }
 
-    playerMovementHandler () {
+    /*playerMovementHandler () {
         let playerBody = this.player.object!.body;
 
         // Up-Left
@@ -853,7 +872,7 @@ export class TactonGame extends Scene {
             playerBody.velocity.y = 0;
             this.player.object!.stop();
         }
-    }
+    }*/
 
     enemyMovementHandler (enemy) {
 
@@ -876,11 +895,8 @@ export class TactonGame extends Scene {
     }
 
     gameOver() {
-
-        this.background.destroy();
         this.corpses.destroy();
         this.collectables.destroy();
-        this.player.destroy();
         this.playerAttacks.destroy();
         this.enemies.destroy();
 
@@ -921,34 +937,6 @@ export class TactonGame extends Scene {
             return true;
         }
         return false;
-    }
-
-    generateGrid (worldSize) {
-        // this.grid = [];
-        var cellSize = 64;
-        var rowCount = Math.floor(worldSize / cellSize);
-        for (let y = 0; y < rowCount; y++) {
-            for (let x = 0; x < rowCount; x++) {
-                var gridX = x * cellSize;
-                var gridY = y * cellSize;
-                this.grid.push(new GridCell(this, {x: x, y: y}, {x: gridX, y: gridY}));
-            }
-        }
-        // this.shuffle(this.grid);
-    }
-
-    getRandomLocation () {
-
-        var gridIndex = 0;
-        var x = this.grid[gridIndex].worldLocation.x;
-        var y = this.grid[gridIndex].worldLocation.y;
-        this.grid.splice(gridIndex, 1);
-        gridIndex++;
-        if (gridIndex === this.grid.length) {
-            this.shuffle(this.grid);
-            gridIndex = 0;
-        }
-        return {x, y};
     }
 
     shuffle (array) {
