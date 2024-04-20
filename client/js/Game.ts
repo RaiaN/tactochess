@@ -2,12 +2,16 @@ import { Scene } from 'phaser';
 import { GridCell } from './components/GridCell';
 import { GameState } from './state/GameState';
 import { GridComponent } from './components/GridComponent';
+import { Piece } from './components/Piece';
 
 export class TactonGame extends Scene {
     gameState: GameState;
     grid: GridComponent;
 
     selectedCell: GridCell | null;
+
+    pieceToMove: Piece | null;
+    moveToTarget: GridCell | null;
     
     playerAttacks: any;
     playerSpells: any;
@@ -146,11 +150,17 @@ export class TactonGame extends Scene {
             // this.gameState.nextTurn();
         } else {
             if (cell.getPiece() == null) {
-                // TODO: Piece move animation!
                 this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
                 this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
                 
                 cell.setPiece(this.selectedCell.getPiece()!);
+
+                // move to logic
+                this.moveToTarget = cell;
+                this.pieceToMove = this.selectedCell.getPiece();
+                this.physics.moveTo(this.selectedCell.getPiece()?.object!, cell.worldLocation.x, cell.worldLocation.y);
+
+                this.selectedCell.getPiece()?.moveTo(cell.worldLocation);
                 
                 // drop active selection
                 this.selectedCell.unselect();
@@ -195,6 +205,31 @@ export class TactonGame extends Scene {
 
     // Checks for actions and changes
     update () {
+
+        // TODO
+        // move to animation! LOL 
+
+        let piece: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody = this.pieceToMove?.object!;
+        let targetCell: Phaser.GameObjects.Sprite = this.moveToTarget?.object!;
+
+        if (piece != null && targetCell != null) {
+            const distance = Phaser.Math.Distance.BetweenPoints(piece.body?.position, new Phaser.Math.Vector2(targetCell.x, targetCell.y));
+
+            if (piece.body.velocity.x! > 0 || piece.body.velocity.y! > 0)
+            {
+                // this.distanceText.setText(`Distance: ${distance}`);
+    
+                if (distance < 4)
+                {
+                    piece.body.reset(targetCell.x, targetCell.y);
+    
+                    this.pieceToMove = null;
+                    this.moveToTarget = null;
+                }
+            }
+        }
+
+        
 
         this.playerHandler();
         this.enemyHandler();

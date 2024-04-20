@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GridCell, WorldLocation } from './GridCell';
+import { WorldLocation } from './GridCell';
 
 type PieceTraits = {
     speed: number;
@@ -70,6 +70,11 @@ export class Piece
     destroy() {
         this.object?.destroy();
         this.object = null;
+    }
+
+    moveTo(newLocation: WorldLocation) {
+        console.log('Moving piece to a new location:' + newLocation.x, newLocation.y);
+        this.scene.physics.moveToObject(this.object!, newLocation);
     }
 
     select() {
