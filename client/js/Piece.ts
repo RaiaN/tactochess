@@ -21,6 +21,7 @@ export class Piece
         this.cell = cell;
 
         this.object = this.scene.physics.add.sprite(this.cell.worldLocation.x, this.cell.worldLocation.y, 'characters');
+        this.object.setInteractive()
         // sprite offset
         this.object.setOrigin(0, 0);
 
@@ -46,6 +47,11 @@ export class Piece
         this.object.body.collideWorldBounds = true;
         this.object.body.velocity.x = 0;
         this.object.body.velocity.y = 0;
+
+        // Todo: emit event -> cell selected!
+        this.object.on('pointerdown', () => {
+            this.object!.anims.play('left');
+        }, this);
 
 
         this.traits = {
