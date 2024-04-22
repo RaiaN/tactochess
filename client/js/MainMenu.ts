@@ -30,7 +30,7 @@ export class MainMenu extends Scene
 
 		this.music = this.sound.add('openingMusic');
 		this.music.loop = true;
-		this.music.play();
+		// this.music.play();
 
 		let { width, height } = this.sys.game.canvas;
 
