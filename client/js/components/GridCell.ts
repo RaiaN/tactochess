@@ -15,7 +15,7 @@ export class GridCell {
     coordinates: CellCoords;
     worldLocation: WorldLocation;
 
-    object: Phaser.GameObjects.Sprite | null;
+    object: Phaser.GameObjects.Sprite;
     piece: Piece | null;
 
     onCellSelected: (cell: GridCell) => boolean;
@@ -43,7 +43,6 @@ export class GridCell {
 
     setPiece(piece: Piece | null) {
         this.piece = piece;
-        // this.piece?.setLocation(this.worldLocation);
     }
 
     getPiece(): Piece | null {
@@ -51,13 +50,14 @@ export class GridCell {
     }
 
     select() {
-        console.log('Piece selected: ' + this.coordinates.x + ',' + this.coordinates.y);
+        console.log('Cell selected: ' + this.coordinates.x + ',' + this.coordinates.y);
 
-        this.object?.setTintFill(0xff);
+        this.piece?.select();
     }
 
     unselect() {
-        console.log('Piece unselected: ' + this.coordinates.x + ',' + this.coordinates.y);
-        this.object?.clearTint();
+        console.log('Cell unselected: ' + this.coordinates.x + ',' + this.coordinates.y);
+
+        this.piece?.unselect();
     }
 }
