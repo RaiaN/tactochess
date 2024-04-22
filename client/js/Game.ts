@@ -3,13 +3,17 @@ import { GridCell } from './components/GridCell';
 import { GameState } from './state/GameState';
 import { GridComponent } from './components/GridComponent';
 import { Piece } from './components/Piece';
+import { PieceController } from './components/PieceController';
 
 export class TactonGame extends Scene {
     gameState: GameState;
     grid: GridComponent;
+    pieceController: PieceController;
 
     selectedCell: GridCell | null;
 
+    // Move to animation 
+    // TODO: AnimController?
     pieceToMove: Piece | null;
     moveToTarget: GridCell | null;
     
@@ -38,6 +42,11 @@ export class TactonGame extends Scene {
     batSound: any;
     ghostSound: any;
     spiderSound: any;
+
+    // UI
+    notificationLabel: Phaser.GameObjects.Text;
+    notification: string;
+    
 
     constructor()
     {
@@ -81,6 +90,11 @@ export class TactonGame extends Scene {
         this.grid = new GridComponent(this);
         this.grid.onCellSelected = (cell) => this.onCellSelected(cell);
 
+        this.pieceController = new PieceController(this, this.grid);
+        this.pieceController.spawnPieces();
+        this.pieceController.enableCollision();
+        this.pieceController.onMovementFinished = () => this.onMovementFinished();
+
         // Generate objects
         // this.generateObstacles();
         // this.generateCollectables();
@@ -122,15 +136,24 @@ export class TactonGame extends Scene {
             };
         }
 
-        // Set the camera
-        this.showLabels();
-
         this.gameState.startGame();
+
+        // Show UI
+        this.showLabels();
+        this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
     }
 
     onCellSelected(cell: GridCell): boolean {
         console.log('Cell selected: ' + cell.coordinates.x + ',' + cell.coordinates.y);
 
+        if (!this.pieceController.hasActiveAction()) {
+            this.handlePlayerAction(cell);
+        }
+
+        return true;
+    }
+
+    handlePlayerAction(cell: GridCell): boolean {
         let cellOccupier = this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy;
 
         if (this.selectedCell == null) {
@@ -151,51 +174,46 @@ export class TactonGame extends Scene {
             // switch to next state: move/attack 
             // this.gameState.nextTurn();
         } else {
-            if (cell.getPiece() == null) {
-                console.log('MoveTo:');
-
-                // update game state
-                this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
-                this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
-
-                let selectedPiece = this.selectedCell.getPiece()!;
-                
-                cell.setPiece(selectedPiece);
-
-                // move to logic
-                this.moveToTarget = cell;
-                this.pieceToMove = selectedPiece;
-                this.physics.moveTo(selectedPiece.object!, this.moveToTarget.worldLocation.x, this.moveToTarget.worldLocation.y);
-
-                selectedPiece.moveTo(cell.worldLocation);
-                
-                // drop active selection
-                this.selectedCell.unselect();
-                this.selectedCell.setPiece(null);
-                this.selectedCell = null;
-
-                this.gameState.nextTurn();
-            } else if (cellOccupier == this.gameState.currentPlayer) {
+            if (cellOccupier == this.gameState.currentPlayer) {
                 // select new piece
                 this.selectedCell.unselect();
                 this.selectedCell = cell;
                 this.selectedCell.select();
+            } else if (cell.getPiece() == null) {
+                if (this.pieceController.movePiece(this.selectedCell, cell)) {
+                    console.log('MoveTo:');
+                    // update game state
+                    this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
+                    this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
+
+                    let selectedPiece = this.selectedCell.getPiece()!;
+                    
+                    cell.setPiece(selectedPiece);
+
+                    // TODO: piece movement animation?
+                    selectedPiece.moveTo(cell.worldLocation);
+
+                    // drop active selection
+                    this.selectedCell.unselect();
+                    this.selectedCell.setPiece(null);
+                    this.selectedCell = null;
+                }
             } else {
-                console.log('Attack:');
+                if (this.pieceController.attackPiece(this.selectedCell, cell)) {
+                    console.log('Attack:');
+                    // update game state
+                    this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = '';
 
-                // update game state
-                this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
-                this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
+                    // drop active selection
+                    this.selectedCell.unselect();
+                    this.selectedCell.setPiece(null);
+                    this.selectedCell = null;
 
-                // Destroy enemy piece
-                cell.getPiece()?.destroy();
+                    this.gameState.nextTurn();
 
-                // drop active selection
-                this.selectedCell.unselect();
-                this.selectedCell.setPiece(null);
-                this.selectedCell = null;
-
-                this.gameState.nextTurn();
+                    // update UI
+                    this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
+                }
             }
         }
 
@@ -205,44 +223,29 @@ export class TactonGame extends Scene {
         return true;
     }
 
+    onMovementFinished() {
+        this.gameState.nextTurn();
+
+        this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
+
+    }
+
     // Checks for actions and changes
     update () {
-
-        // TODO
-        // move to animation! LOL 
-
-        let piece: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody = this.pieceToMove?.object!;
-        let targetCell: Phaser.GameObjects.Sprite = this.moveToTarget?.object!;
-
-        if (piece != null && targetCell != null) {
-            const distance = Phaser.Math.Distance.BetweenPoints(piece.body?.position, new Phaser.Math.Vector2(targetCell.x, targetCell.y));
-
-            if (piece.body.velocity.x! > 0 || piece.body.velocity.y! > 0)
-            {
-                // this.distanceText.setText(`Distance: ${distance}`);
-    
-                if (distance < 4)
-                {
-                    piece.body.reset(targetCell.x, targetCell.y);
-    
-                    this.pieceToMove = null;
-                    this.moveToTarget = null;
-                }
-            }
-        }
-
-        
+        this.pieceController.update();
 
         this.playerHandler();
         this.enemyHandler();
         this.bossHandler();
         this.collisionHandler();
 
+        this.notificationLabel.text = this.notification;
+        this.notificationLabel.setPosition(this.input.mousePointer.position.x + 20, this.input.mousePointer.position.y);
+
         /*this.collectables.forEachDead(function(collectable) {
             collectable.destroy();
         });*/
-
-        // this.notificationLabel.text = this.notification;
+       
         // this.xpLabel.text = 'Lvl. ' + this.player.level + ' - ' + this.xp + ' XP / ' + this.xpToNext + ' XP';
         // this.goldLabel.text = this.gold + ' Gold';
         // this.healthLabel.text = this.player.health + ' / ' + this.player.vitality;
@@ -390,12 +393,13 @@ export class TactonGame extends Scene {
 
     showLabels() {
 
-        /*var text = '0';
-        style = { font: '10px Arial', fill: '#fff', align: 'center' };
-        this.notificationLabel = this.add.text(25, 25, text, style);
-        this.notificationLabel.fixedToCamera = true;
+        var text = '0';
+        const style = { font: '10px Arial', fill: '#100', align: 'center' };
 
-        style = { font: '10px Arial', fill: '#ffd', align: 'center' };
+        const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
+        this.notificationLabel = this.add.text(screenCenterX, 25, text, style);
+
+        /*style = { font: '10px Arial', fill: '#ffd', align: 'center' };
         this.xpLabel = this.add.text(25, this.game.height - 25, text, style);
         this.xpLabel.fixedToCamera = true;
 
