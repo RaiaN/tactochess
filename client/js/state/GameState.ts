@@ -15,12 +15,12 @@ export class GameState {
     addPlayer(playerId) {
         this.players.push(new Player(playerId));
 
-        var cellOffset = 6 * 8;
-        if (this.grid.cells[63].occupiedBy != '') {
-            cellOffset = 8;
+        var cellOffset = 0;
+        if (this.players.length == 2) {
+            cellOffset = 6 * 8;
         }
-       
-        for (let i = 0; i < 16; i++) {
+
+        for (let i = 0; i < 2; i++) {
             this.grid.cells[cellOffset + i].occupiedBy = playerId;
         }
     }
@@ -39,6 +39,25 @@ export class GameState {
         this.currentPlayer = nextPlayer;
 
         console.log('Next turn: ' + this.currentPlayer);
+    }
+
+    updateGrid(index: number, occupiedBy: string) {
+        this.grid.getByIndex(index).occupiedBy = occupiedBy;
+    }
+
+    checkWin(): boolean {
+        let playerCnt = 0;
+        let enemyCnt = 0;
+
+        this.grid.cells.forEach((cell) => {
+            if (cell.occupiedBy == this.players[0].playerId) {
+                ++playerCnt; 
+            } else if (cell.occupiedBy == this.players[1].playerId) {
+                ++enemyCnt; 
+            }
+        });
+
+        return playerCnt == 0 || enemyCnt == 0;
     }
 
     getCurrentPlayer(): string {
