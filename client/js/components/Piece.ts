@@ -74,7 +74,7 @@ export class Piece
 
     moveTo(newLocation: WorldLocation) {
         console.log('Moving piece to a new location:' + newLocation.x, newLocation.y);
-        this.scene.physics.moveToObject(this.object!, newLocation);
+        // this.scene.physics.moveToObject(this.object!, newLocation);
     }
 
     select() {

@@ -134,15 +134,17 @@ export class TactonGame extends Scene {
         let cellOccupier = this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy;
 
         if (this.selectedCell == null) {
+            // cannot select enemy piece
             if (cellOccupier != this.gameState.currentPlayer) {
                 return false;
             }
 
+            // nothing to select
             if (cell.getPiece() == null) {
                 return false;
             }
 
-            // select 
+            // select piece
             this.selectedCell = cell;
             this.selectedCell.select();
 
@@ -150,52 +152,52 @@ export class TactonGame extends Scene {
             // this.gameState.nextTurn();
         } else {
             if (cell.getPiece() == null) {
+                console.log('MoveTo:');
+
+                // update game state
                 this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
                 this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
+
+                let selectedPiece = this.selectedCell.getPiece()!;
                 
-                cell.setPiece(this.selectedCell.getPiece()!);
+                cell.setPiece(selectedPiece);
 
                 // move to logic
                 this.moveToTarget = cell;
-                this.pieceToMove = this.selectedCell.getPiece();
-                this.physics.moveTo(this.selectedCell.getPiece()?.object!, cell.worldLocation.x, cell.worldLocation.y);
+                this.pieceToMove = selectedPiece;
+                this.physics.moveTo(selectedPiece.object!, this.moveToTarget.worldLocation.x, this.moveToTarget.worldLocation.y);
 
-                this.selectedCell.getPiece()?.moveTo(cell.worldLocation);
+                selectedPiece.moveTo(cell.worldLocation);
                 
                 // drop active selection
                 this.selectedCell.unselect();
                 this.selectedCell.setPiece(null);
                 this.selectedCell = null;
 
-                console.log('MoveTo:');
                 this.gameState.nextTurn();
             } else if (cellOccupier == this.gameState.currentPlayer) {
+                // select new piece
                 this.selectedCell.unselect();
                 this.selectedCell = cell;
                 this.selectedCell.select();
             } else {
-                // Attack
-                cell.getPiece()?.destroy();
+                console.log('Attack:');
+
+                // update game state
                 this.gameState.grid.getByCoords(this.selectedCell.coordinates.x, this.selectedCell.coordinates.y).occupiedBy = '';
                 this.gameState.grid.getByCoords(cell.coordinates.x, cell.coordinates.y).occupiedBy = this.gameState.currentPlayer;
-                cell.setPiece(this.selectedCell.getPiece());
+
+                // Destroy enemy piece
+                cell.getPiece()?.destroy();
 
                 // drop active selection
                 this.selectedCell.unselect();
                 this.selectedCell.setPiece(null);
                 this.selectedCell = null;
 
-                console.log('Attack:');
                 this.gameState.nextTurn();
             }
         }
-
-        // Handle move/attack
-        if (this.selectedCell != null) {
-            
-        }
-
-        
 
         // TODO: fire message to server
         // TODO: server validates desired move can be done!
