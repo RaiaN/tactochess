@@ -17,13 +17,13 @@ export class GridComponent {
     }
 
     generateGrid () {
-        var rowCount = Math.floor(this.worldSize / GridComponent.CELL_SIZE);
+        let rowCount = Math.floor(this.worldSize / GridComponent.CELL_SIZE);
         for (let y = 0; y < rowCount; y++) {
             for (let x = 0; x < rowCount; x++) {
-                var gridX = x * GridComponent.CELL_SIZE;
-                var gridY = y * GridComponent.CELL_SIZE;
+                let gridX = x * GridComponent.CELL_SIZE;
+                let gridY = y * GridComponent.CELL_SIZE;
 
-                let newCell = new GridCell(this.scene, {x: x, y: y}, {x: gridX, y: gridY});
+                let newCell = new GridCell(this.scene, {x: y, y: x}, {x: gridX, y: gridY});
                 newCell.onCellSelected = (cell) => this.onCellSelected(cell);
 
                 this.cells.push(newCell);
@@ -32,7 +32,7 @@ export class GridComponent {
     }
 
     getCellByCoords(coords: CellCoords): GridCell {
-        return this.cells[coords.y * 8 + coords.x];
+        return this.cells[coords.x * 8 + coords.y];
     }
 
     getCellByIndex(index: number): GridCell {
