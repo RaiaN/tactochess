@@ -31,9 +31,9 @@ export class PieceController
     }
 
     spawnPlayerPieces () {
-        const offset = 6 * 8;
+        const offset = 0;
 
-        for (var i = 0; i < 16; i++) {
+        for (var i = 0; i < 2; i++) {
             let cell = this.grid.cells[offset + i];
 
             let piece = new Piece(this.scene, cell.worldLocation, true);
@@ -44,9 +44,9 @@ export class PieceController
     }
 
     spawnEnemyPieces () {
-        const offset = 0;
+        const offset = 6 * 8;
 
-        for (var i = 0; i < 16; i++) {
+        for (var i = 0; i < 2; i++) {
             let cell = this.grid.cells[offset + i];
 
             let piece = new Piece(this.scene, cell.worldLocation, false);
@@ -68,11 +68,10 @@ export class PieceController
         if (Phaser.Math.Distance.Snake(fromCell.coordinates.x, fromCell.coordinates.y, toCell.coordinates.x, toCell.coordinates.y) < moveDistance)
         {
             this.pieceToMove = piece;
-            this.pieceToMove.object!.setImmovable(true);
             this.moveToCell = toCell;
             this.hasReachedTarget = false;
 
-            this.scene.physics.moveTo(this.pieceToMove.object!, this.moveToCell.worldLocation.x, this.moveToCell.worldLocation.y);
+            this.pieceToMove.moveTo(this.moveToCell.worldLocation);
 
             return true;
         } else {
@@ -89,6 +88,7 @@ export class PieceController
         if (Phaser.Math.Distance.Snake(fromCell.coordinates.x, fromCell.coordinates.y, toCell.coordinates.x, toCell.coordinates.y) < attackDistance) {
             // Destroy enemy piece
             toCell.getPiece()?.destroy();
+            toCell.setPiece(null);
 
             return true;
         } else {
@@ -99,16 +99,24 @@ export class PieceController
     }
 
     update () {
+        // TODO: this logic can be moved to Piece class itself
+        // we call hasMoveTarget()? for each piece 
+        // if true then call update()
+        // the same can be done wrt Attack action
+
         if (this.pieceToMove != null && this.moveToCell != null) {
             let piece: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody = this.pieceToMove.object;
             let targetCell: Phaser.GameObjects.Sprite = this.moveToCell.object;
 
             if (!this.hasReachedTarget) {
                 const distance = Phaser.Math.Distance.BetweenPoints(piece.body.position, new Phaser.Math.Vector2(targetCell.x, targetCell.y));
+                
+                // this.pieceToMove.moveTo(this.moveToCell.worldLocation);
+                // const angle = Phaser.Math.Angle.BetweenPoints(this.moveToCell.worldLocation, piece.body.position);
         
                 if (piece.body.velocity.x > 0 || piece.body.velocity.y > 0)
                 {
-                    // this.distanceText.setText(`Distance: ${distance}`);
+                    console.log(`Distance: ${distance}`);
         
                     if (distance < 4)
                     {
