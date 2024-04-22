@@ -13,16 +13,18 @@ export interface WorldLocation {
 export class GridCell {
     scene: Phaser.Scene;
     coordinates: CellCoords;
+    index: number;
     worldLocation: WorldLocation;
 
     object: Phaser.GameObjects.Sprite;
     piece: Piece | null;
 
     onCellSelected: (cell: GridCell) => boolean;
-
+    
     constructor(scene: Phaser.Scene, coordinates: CellCoords, worldLocation: WorldLocation) {
         this.scene = scene;
         this.coordinates = coordinates;
+        this.index = coordinates.x * 8 + coordinates.y;
         this.worldLocation = worldLocation;
 
         let tileIndex = (this.coordinates.y + this.coordinates.x) % 2 == 0 ? 9 : 17;
