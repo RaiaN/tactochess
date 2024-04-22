@@ -1,4 +1,3 @@
-import { Piece } from "./Piece";
 import { CellCoords, GridCell } from "./GridCell";
 
 export class GridComponent {
@@ -15,8 +14,6 @@ export class GridComponent {
         this.worldSize = this.scene.physics.world.bounds.width;
 
         this.generateGrid();
-
-        this.spawnPieces();
     }
 
     generateGrid () {
@@ -40,38 +37,5 @@ export class GridComponent {
 
     getCellByIndex(index: number): GridCell {
         return this.cells[index];
-    }
-
-    spawnPieces() {
-        this.spawnBlackPieces();
-        this.spawnWhitePieces();
-    }
-
-    spawnWhitePieces () {
-        const whiteFirstRowOffset = 6 * 8;
-
-        // generate first row
-        for (var i = 0; i < 8; i++) {
-            let cell = this.cells[whiteFirstRowOffset + i];
-
-            let piece = new Piece(this.scene, cell.worldLocation, true);
-            cell.setPiece(piece);
-        }
-
-        // TODO: generate second row
-    }
-
-    spawnBlackPieces () {
-        const blackFirstRowOffset = 8;
-
-        // generate first row
-        for (var i = 0; i < 8; i++) {
-            let cell = this.cells[blackFirstRowOffset + i];
-
-            let piece = new Piece(this.scene, cell.worldLocation, false);
-            cell.setPiece(piece);
-        }
-
-        // TODO: generate second row
     }
 }
