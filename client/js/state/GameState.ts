@@ -34,10 +34,14 @@ export class GameState {
     }
 
     nextTurn() {
-        let nextTurn = (this.currentPlayer == this.players[0].playerId) ? this.players[1].playerId : this.players[0].playerId;
+        let nextPlayer: string = (this.currentPlayer == this.players[0].playerId) ? this.players[1].playerId : this.players[0].playerId;
 
-        this.currentPlayer = nextTurn;
+        this.currentPlayer = nextPlayer;
 
         console.log('Next turn: ' + this.currentPlayer);
+    }
+
+    getCurrentPlayer(): string {
+        return this.currentPlayer;
     }
 }
