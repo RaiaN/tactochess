@@ -46,13 +46,14 @@ export class Piece
         this.object.body.velocity.x = 0;
         this.object.body.velocity.y = 0;
 
+        this.object.setImmovable(false);
         this.object.setPushable(false);
         // this.object.setCircle(5, 2, 2);
 
         this.traits = {
             speed: 125,
-            moveDistance: 3,
-            attackDistance: 4
+            moveDistance: 5,
+            attackDistance: 5
         }
     }
 
@@ -82,7 +83,8 @@ export class Piece
 
     moveTo(newLocation: WorldLocation) {
         console.log('Moving piece to a new location:' + newLocation.x, newLocation.y);
-        // this.scene.physics.moveToObject(this.object!, newLocation);
+        this.object.setImmovable(true);
+        this.scene.physics.moveTo(this.object!, newLocation.x, newLocation.y, this.traits.speed);
     }
 
     select() {
