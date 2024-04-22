@@ -220,7 +220,9 @@ export class TactonGame extends Scene {
         if (this.gameState.checkWin()) {
             // TODO: Add delay!
 
-            this.gameOver();
+            this.notification = 'Game over! Winner: ' + this.gameState.getCurrentPlayer();
+            setTimeout(() =>  this.gameOver(), 2000);
+           
             return true;
         }
         return false;
