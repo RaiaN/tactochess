@@ -3,13 +3,16 @@ import { WorldLocation } from './GridCell';
 
 type PieceTraits = {
     speed: number;
+    moveDistance:  number;
+    attackDistance: number;
 }
 
 export class Piece
 {
     scene: Phaser.Scene;
 
-    object: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | null;
+    object: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    tween: Phaser.Tweens.Tween | null;
     traits: PieceTraits;
     
     constructor(scene: Phaser.Scene, location: WorldLocation, isWhite: boolean)
@@ -43,13 +46,18 @@ export class Piece
         this.object.body.velocity.x = 0;
         this.object.body.velocity.y = 0;
 
+        this.object.setPushable(false);
+        // this.object.setCircle(5, 2, 2);
+
         this.traits = {
-            speed: 125
+            speed: 125,
+            moveDistance: 3,
+            attackDistance: 4
         }
     }
 
     setLocation(newLocation: WorldLocation) {
-        this.object?.setPosition(newLocation.x, newLocation.y);
+        this.object.setPosition(newLocation.x, newLocation.y);
     }
 
     setUpSpriteAnim(sprite: Phaser.Physics.Arcade.Sprite, spriteKey: string, animKey: string, startFrame: integer, endFrame?: integer, frameRate?: integer, repeat?: integer)
@@ -68,8 +76,8 @@ export class Piece
     }
 
     destroy() {
-        this.object?.destroy();
-        this.object = null;
+        // TODO: Play animation?
+        this.object.destroy();
     }
 
     moveTo(newLocation: WorldLocation) {
@@ -78,10 +86,21 @@ export class Piece
     }
 
     select() {
-        this.object?.anims.play('up');
+        this.tween = this.scene.tweens.add({
+            targets: this.object,
+            alpha: 0.4,
+            ease: 'Cubic.easeOut',  
+            duration: 500,
+            repeat: -1,
+            yoyo: true
+        });
     }
 
     unselect() {
-        this.object?.anims.play('down');
+        if (this.tween != null) {
+            this.scene.tweens.remove(this.tween);
+            this.tween = null;
+            this.object.alpha = 1.0;
+        }
     }
 };
