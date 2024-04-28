@@ -19,36 +19,35 @@ export class Piece
     {
         this.scene = scene;
 
-        this.object = this.scene.physics.add.sprite(location.x, location.y, 'characters');
+        this.object = this.scene.physics.add.sprite(location.x, location.y);
+
+        this.setUpSpriteAnim(this.object, 'walk', 'walk_anim', 0, 5);
+        this.setUpSpriteAnim(this.object, 'shoot', 'shoot_anim', 0, 5);
+
+        let animConfig = {
+            key: 'walk_anim',
+            frameRate: 5,
+            // timeScale?: number;
+            randomFrame: true
+        };
+        this.object.anims.play(animConfig);
+        if (isWhite) {
+            this.object.setTint(0xBB00BB);
+        } else {
+            this.object.setTint(0x69FF00);
+            this.object.setFlipY(true);
+        }
+
         // sprite offset
         this.object.setOrigin(0, 0);
 
-        if (isWhite) {
-            // Skeleton anims
-            this.setUpSpriteAnim(this.object, 'characters', 'down', 9, 11);
-            this.setUpSpriteAnim(this.object, 'characters', 'left', 21, 23);
-            this.setUpSpriteAnim(this.object, 'characters', 'right', 33, 35);
-            this.setUpSpriteAnim(this.object, 'characters', 'up', 45, 47);
-
-            this.object.anims.play('up');
-        } else {
-            // Bat anims
-            this.setUpSpriteAnim(this.object, 'characters', 'down', 51, 53);
-            this.setUpSpriteAnim(this.object, 'characters', 'left', 63, 65);
-            this.setUpSpriteAnim(this.object, 'characters', 'right', 75, 77);
-            this.setUpSpriteAnim(this.object, 'characters', 'up', 87, 89);
-
-            this.object.anims.play('down');
-        }
-
-        this.object.scale = 4;
+        this.object.scale = 0.15;
         this.object.body.collideWorldBounds = true;
         this.object.body.velocity.x = 0;
         this.object.body.velocity.y = 0;
 
         this.object.setImmovable(false);
         this.object.setPushable(false);
-        // this.object.setCircle(5, 2, 2);
 
         this.traits = {
             speed: 125,
@@ -73,7 +72,9 @@ export class Piece
             repeat: repeat ?? -1
         };
 
-        sprite.anims.create(config);
+        if (!sprite.anims.create(config)) {
+            console.log('Failed to load anim from: ', spriteKey);
+        }
     }
 
     destroy() {
