@@ -25,18 +25,8 @@ export class TactonGame extends Scene {
     controls: { up: Phaser.Input.Keyboard.Key; left: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key; spell: Phaser.Input.Keyboard.Key; };
     collectables: any;
 
-    dragonSound: any;
-    levelSound: any;
     attackSound: any;
-    fireballSound: any;
-    goldSound: any;
-    potionSound: any;
     playerSound: any;
-    skeletonSound: any;
-    slimeSound: any;
-    batSound: any;
-    ghostSound: any;
-    spiderSound: any;
 
     // UI
     notificationLabel: Phaser.GameObjects.Text;
@@ -218,8 +208,6 @@ export class TactonGame extends Scene {
 
     checkWin(): boolean {
         if (this.gameState.checkWin()) {
-            // TODO: Add delay!
-
             this.notification = 'Game over! Winner: ' + this.gameState.getCurrentPlayer();
             setTimeout(() =>  this.gameOver(), 2000);
            
@@ -278,17 +266,7 @@ export class TactonGame extends Scene {
     generateSounds () {
 
         this.attackSound = this.sound.add('attackSound');
-        this.batSound = this.sound.add('batSound');
-        this.fireballSound = this.sound.add('fireballSound');
-        this.dragonSound = this.sound.add('dragonSound');
-        this.ghostSound = this.sound.add('ghostSound');
-        this.goldSound = this.sound.add('goldSound');
-        this.levelSound = this.sound.add('levelSound');
         this.playerSound = this.sound.add('playerSound');
-        this.potionSound = this.sound.add('potionSound');
-        this.skeletonSound = this.sound.add('skeletonSound');
-        this.slimeSound = this.sound.add('slimeSound');
-        this.spiderSound = this.sound.add('spiderSound');
     }
 
     gameOver() {
@@ -296,15 +274,6 @@ export class TactonGame extends Scene {
 
 		this.music.stop();
 		this.music.destroy();
-
-        this.attackSound.destroy();
-        this.playerSound.destroy();
-        this.skeletonSound.destroy();
-        this.slimeSound.destroy();
-        this.batSound.destroy();
-        this.ghostSound.destroy();
-        this.spiderSound.destroy();
-        this.goldSound.destroy();
 
         //  Here you should destroy anything you no longer need.
         //  Stop music, delete sprites, purge caches, free resources, all that good stuff.
