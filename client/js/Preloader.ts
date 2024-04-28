@@ -42,27 +42,23 @@ export class Preloader extends Scene
 		this.load.spritesheet('tiles', 'assets/images/tiles.png', { frameWidth: 16, frameHeight: 16 });
 		this.load.spritesheet('things', 'assets/images/things.png', { frameWidth: 16, frameHeight: 16 });
 		this.load.spritesheet('characters', 'assets/images/characters.png', { frameWidth: 16, frameHeight: 16 });
-		this.load.spritesheet('dead', 'assets/images/dead.png', { frameWidth: 16, frameHeight: 16 });
-		this.load.spritesheet('potions', 'assets/images/potions.png', { frameWidth: 16, frameHeight: 16 });
-		this.load.spritesheet('dragons', 'assets/images/dragons.png', { frameWidth: 32, frameHeight: 32 });
-		this.load.spritesheet('fireball', 'assets/images/fireball.png', { frameWidth: 16, frameHeight: 16 });
-		this.load.spritesheet('spell', 'assets/images/spell.png', { frameWidth: 12, frameHeight: 12 });
+		// this.load.spritesheet('dead', 'assets/images/dead.png', { frameWidth: 16, frameHeight: 16 });
+		// this.load.spritesheet('potions', 'assets/images/potions.png', { frameWidth: 16, frameHeight: 16 });
+		// this.load.spritesheet('dragons', 'assets/images/dragons.png', { frameWidth: 32, frameHeight: 32 });
+		// this.load.spritesheet('fireball', 'assets/images/fireball.png', { frameWidth: 16, frameHeight: 16 });
+		// this.load.spritesheet('spell', 'assets/images/spell.png', { frameWidth: 12, frameHeight: 12 });
+
+		// load top down survivor pack
+		this.load.spritesheet('walk', 'assets/soldier/walk.png', { frameWidth: 332, frameHeight: 413 });
+		this.load.spritesheet('shoot', 'assets/soldier/shoot.png', { frameWidth: 368, frameHeight: 638 });
+		// this.load.spritesheet('move', 'assets/top_down_survivor/sheets/move.png', { frameWidth: 313, frameHeight: 206 });
+		// this.load.spritesheet('shoot', 'assets/top_down_survivor/sheets/shoot.png', { frameWidth: 312, frameHeight: 206 });
 
 		this.load.audio('openingMusic', 'assets/sound/opening.ogg');
 
 		this.load.audio('overworldMusic', 'assets/sound/overworld.ogg');
 		this.load.audio('attackSound', 'assets/sound/attack.wav');
 		this.load.audio('playerSound', 'assets/sound/player.wav');
-		this.load.audio('skeletonSound', 'assets/sound/skeleton.wav');
-		this.load.audio('slimeSound', 'assets/sound/slime.wav');
-		this.load.audio('batSound', 'assets/sound/bat.wav');
-		this.load.audio('ghostSound', 'assets/sound/ghost.wav');
-		this.load.audio('spiderSound', 'assets/sound/spider.wav');
-		this.load.audio('goldSound', 'assets/sound/gold.wav');
-		this.load.audio('potionSound', 'assets/sound/potion.ogg');
-		this.load.audio('levelSound', 'assets/sound/level.ogg');
-		this.load.audio('fireballSound', 'assets/sound/fireball.wav');
-		this.load.audio('dragonSound', 'assets/sound/dragon.wav');
 	}
 
 	create () {
