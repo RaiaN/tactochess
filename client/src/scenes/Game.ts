@@ -1,9 +1,9 @@
 import { Scene } from 'phaser';
-import { GridCell } from './components/GridCell';
-import { GameState } from './state/GameState';
-import { GridComponent } from './components/GridComponent';
-import { Piece } from './components/Piece';
-import { PieceController } from './components/PieceController';
+import { GridCell } from '../components/GridCell';
+import { GameState } from '../state/GameState';
+import { GridComponent } from '../components/GridComponent';
+import { Piece } from '../components/Piece';
+import { PieceController } from '../components/PieceController';
 
 export class TactonGame extends Scene {
     gameState: GameState;

@@ -57,7 +57,8 @@ export class PieceController
     }
 
     enableCollision() {
-        this.scene.physics.add.collider(this.pieces);
+        // TODO: Does this game need physics???
+        // this.scene.physics.add.collider(this.pieces);
     }
 
     movePiece(fromCell: GridCell, toCell: GridCell): boolean {
@@ -87,8 +88,11 @@ export class PieceController
 
         if (Phaser.Math.Distance.Snake(fromCell.coordinates.x, fromCell.coordinates.y, toCell.coordinates.x, toCell.coordinates.y) < attackDistance) {
             // Destroy enemy piece
+            fromCell.getPiece()!.object.play('shoot_anim');
             toCell.getPiece()?.destroy();
             toCell.setPiece(null);
+
+            setTimeout(() =>  fromCell.getPiece()!.playWalk(), 500);
 
             return true;
         } else {

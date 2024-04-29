@@ -1,10 +1,10 @@
 import { DiscordSDK } from "@discord/embedded-app-sdk";
 import { Client, Room } from 'colyseus.js';
-import { Boot } from './js/Boot';
-import { GameOver } from './js/GameOver';
-import { Preloader } from './js/Preloader';
-import { MainMenu } from './js/MainMenu';
-import { TactonGame } from './js/Game';
+import { Boot } from './src/scenes/Boot'
+import { GameOver } from './src/scenes/GameOver';
+import { Preloader } from './src/scenes/Preloader';
+import { MainMenu } from './src/scenes/MainMenu';
+import { TactonGame } from './src/scenes/Game';
 
 
 // Instantiate the SDK
