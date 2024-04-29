@@ -68,11 +68,15 @@ export class PieceController
 
         if (Phaser.Math.Distance.Snake(fromCell.coordinates.x, fromCell.coordinates.y, toCell.coordinates.x, toCell.coordinates.y) < moveDistance)
         {
-            this.pieceToMove = piece;
-            this.moveToCell = toCell;
-            this.hasReachedTarget = false;
+            // this.pieceToMove = piece;
+            // this.moveToCell = toCell;
+            // this.hasReachedTarget = false;
+            
+            piece.setLocation(toCell.worldLocation);
+            this.onMovementFinished.call(this);
 
-            this.pieceToMove.moveTo(this.moveToCell.worldLocation);
+            // Disable moev animation for now!
+            // this.pieceToMove.moveTo(this.moveToCell.worldLocation);
 
             return true;
         } else {
@@ -82,17 +86,27 @@ export class PieceController
         return false;
     }
 
-    attackPiece(fromCell: GridCell, toCell: GridCell): boolean {
+    async attackPiece(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
         let attacker: Piece = fromCell.getPiece()!;
         let attackDistance: number = attacker.traits.attackDistance;
 
         if (Phaser.Math.Distance.Snake(fromCell.coordinates.x, fromCell.coordinates.y, toCell.coordinates.x, toCell.coordinates.y) < attackDistance) {
             // Destroy enemy piece
-            fromCell.getPiece()!.object.play('shoot_anim');
-            toCell.getPiece()?.destroy();
-            toCell.setPiece(null);
+            // fromCell.getPiece()!.object.setRotation()
 
-            setTimeout(() =>  fromCell.getPiece()!.playWalk(), 500);
+            const attackAnim = async () => {
+                let piece: Piece = fromCell.getPiece()!;
+
+                // let angle = Phaser.Math.Angle.BetweenPoints(piece.getLocation(), toCell.worldLocation);
+                // piece.object.angle += angle;
+
+                piece.object.play('shoot_anim');
+                toCell.getPiece()?.destroy();
+                toCell.setPiece(null);
+
+                setTimeout(() =>  piece.playWalk(), 500);
+            }
+            await attackAnim();
 
             return true;
         } else {
@@ -108,7 +122,7 @@ export class PieceController
         // if true then call update()
         // the same can be done wrt Attack action
 
-        if (this.pieceToMove != null && this.moveToCell != null) {
+        /*if (this.pieceToMove != null && this.moveToCell != null) {
             let piece: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody = this.pieceToMove.object;
             let targetCell: Phaser.GameObjects.Sprite = this.moveToCell.object;
 
@@ -136,10 +150,14 @@ export class PieceController
                 this.moveToCell = null;
                 this.onMovementFinished.call(this);
             }
-        }
+        }*/
     }
 
     hasActiveAction() {
         return this.pieceToMove != null && this.moveToCell != null;
     }
+}
+
+function async() {
+    throw new Error('Function not implemented.');
 }

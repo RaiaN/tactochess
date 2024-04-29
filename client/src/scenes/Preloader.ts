@@ -51,6 +51,7 @@ export class Preloader extends Scene
 		// load top down survivor pack
 		this.load.spritesheet('walk', 'assets/soldier/walk.png', { frameWidth: 332, frameHeight: 413 });
 		this.load.spritesheet('shoot', 'assets/soldier/shoot.png', { frameWidth: 368, frameHeight: 638 });
+
 		// this.load.spritesheet('move', 'assets/top_down_survivor/sheets/move.png', { frameWidth: 313, frameHeight: 206 });
 		// this.load.spritesheet('shoot', 'assets/top_down_survivor/sheets/shoot.png', { frameWidth: 312, frameHeight: 206 });
 

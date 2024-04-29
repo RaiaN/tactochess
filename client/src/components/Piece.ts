@@ -52,6 +52,10 @@ export class Piece
         this.object.setPosition(newLocation.x, newLocation.y);
     }
 
+    getLocation() {
+        return {x: this.object.x, y: this.object.y };
+    }
+
     setUpSpriteAnim(sprite: Phaser.Physics.Arcade.Sprite, spriteKey: string, animKey: string, startFrame: integer, endFrame?: integer, frameRate?: integer, repeat?: integer)
     {
         let config = {

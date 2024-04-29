@@ -64,8 +64,8 @@ export class TactonGame extends Scene {
         // TODO: Server code
         this.gameState = new GameState();
          // TODO: colyseus OnJoin()
-        this.gameState.addPlayer('white');
-        this.gameState.addPlayer('black');
+        this.gameState.addPlayer('red');
+        this.gameState.addPlayer('green');
 
         // Generate in order of back to front
         var worldSize = 512;
@@ -117,7 +117,7 @@ export class TactonGame extends Scene {
         return true;
     }
 
-    handlePlayerAction(cell: GridCell): boolean {
+    async handlePlayerAction(cell: GridCell): Promise<boolean> {
         let cellOccupier = this.gameState.grid.getByIndex(cell.index).occupiedBy;
 
         // 1. select phase
@@ -162,11 +162,16 @@ export class TactonGame extends Scene {
                     this.selectedCell.unselect();
                     this.selectedCell.setPiece(null);
                     this.selectedCell = null;
+
+                    this.nextTurn();
+
+                    this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
                 }
 
             // Attack piece
             } else {
-                if (this.pieceController.attackPiece(this.selectedCell, cell)) {
+                let attackResult = await this.pieceController.attackPiece(this.selectedCell, cell);
+                if (attackResult) {
                     console.log('Attack:');
 
                     this.attackSound.play();
@@ -193,9 +198,10 @@ export class TactonGame extends Scene {
     }
 
     onMovementFinished() {
-        this.nextTurn();
+        // Move animations disabled!
+        // this.nextTurn();
 
-        this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
+        // this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
 
     }
 
@@ -227,7 +233,7 @@ export class TactonGame extends Scene {
     showLabels() {
 
         var text = '0';
-        const style = { font: '10px Arial', fill: '#100', align: 'center' };
+        const style = { font: '14px Arial', fill: '#100', align: 'center' };
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         this.notificationLabel = this.add.text(screenCenterX, 25, text, style);
