@@ -24,13 +24,8 @@ export class Piece
         this.setUpSpriteAnim(this.object, 'walk', 'walk_anim', 0, 5);
         this.setUpSpriteAnim(this.object, 'shoot', 'shoot_anim', 0, 5);
 
-        let animConfig = {
-            key: 'walk_anim',
-            frameRate: 5,
-            // timeScale?: number;
-            randomFrame: true
-        };
-        this.object.anims.play(animConfig);
+        this.playWalk();
+    
         if (isWhite) {
             this.object.setTint(0xBB00BB);
         } else {
@@ -45,9 +40,6 @@ export class Piece
         this.object.body.collideWorldBounds = true;
         this.object.body.velocity.x = 0;
         this.object.body.velocity.y = 0;
-
-        this.object.setImmovable(false);
-        this.object.setPushable(false);
 
         this.traits = {
             speed: 125,
@@ -77,6 +69,16 @@ export class Piece
         }
     }
 
+    playWalk() {
+        let animConfig = {
+            key: 'walk_anim',
+            frameRate: 5,
+            // timeScale?: number;
+            randomFrame: true
+        };
+        this.object.anims.play(animConfig);
+    }
+
     destroy() {
         // TODO: Play animation?
         this.object.destroy();
@@ -84,7 +86,7 @@ export class Piece
 
     moveTo(newLocation: WorldLocation) {
         console.log('Moving piece to a new location:' + newLocation.x, newLocation.y);
-        this.object.setImmovable(true);
+        // this.object.setImmovable(true);
         this.scene.physics.moveTo(this.object!, newLocation.x, newLocation.y, this.traits.speed);
     }
 
