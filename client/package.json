@@ -7,12 +7,12 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "devDependencies": {
-    "vite": "^5.0.8"
-  },
   "dependencies": {
     "@discord/embedded-app-sdk": "^1.1.2",
-    "colyseus.js": "^0.15.18",
+    "colyseus.js": "^0.15.17",
     "phaser": "^3.80.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.8"
   }
 }

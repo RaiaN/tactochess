@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "rootDir": "..",
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "strict": true,
+        "allowJs": true,
+        "strictNullChecks": false,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "useDefineForClassFields": false,
+        "declarationDir": "../build",
+        "declaration": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "noImplicitAny": false,
+        "inlineSources": true,
+        "sourceMap": true
+    },
+    "include": [
+       "."
+    ]
+}
