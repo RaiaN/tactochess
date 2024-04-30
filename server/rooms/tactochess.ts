@@ -82,7 +82,10 @@ export class Tactochess extends Room<MyState> {
     }
   
     playerAction (client: Client, data: any) {
-      console.log('playerAction...');
+      let playerId: number = this.getPlayerId(client.sessionId);
+      console.log('Message from client (player id): ' + playerId);
+      console.log('Message data: ' + data);
+
       if (this.state.winner) {
         return false;
       }
