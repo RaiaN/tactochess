@@ -255,11 +255,14 @@ export class TactonGame extends Scene {
 
     }
 
-    nextTurn() {
-        if (!this.checkWin()) {
-            this.gameState.nextTurn();
-            return;
-        }
+    nextTurn(playerId: number) {
+        // TODO:
+        this.notification = 'Current turn: ' + this.room.state.currentTurn;
+
+        //if (!this.checkWin()) {
+        // this.gameState.nextTurn();
+        // return;
+        //}
     }
 
     checkWin(): boolean {
