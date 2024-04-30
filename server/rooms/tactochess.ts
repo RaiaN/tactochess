@@ -41,6 +41,10 @@ export class Tactochess extends Room<MyState> {
       return this.state.players.get(playerStringId).playerId;
     }
 
+    pickRandomPlayerAsCurrent() {
+      this.state.currentTurn = this.getPlayerId(this.playerIds[Math.floor(Math.random() * this.playerIds.length)]);
+    }
+
     nextTurn() {
       let firstPlayerId = this.getPlayerId(this.playerIds[0]);
       let secondPlayerId = this.getPlayerId(this.playerIds[1]);
