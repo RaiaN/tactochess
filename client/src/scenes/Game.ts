@@ -156,9 +156,13 @@ export class TactonGame extends Scene {
     onCellSelected(cell: GridCell): boolean {
         console.log('Cell selected: ' + cell.coordinates.x + ',' + cell.coordinates.y);
 
-        if (!this.pieceController.hasActiveAction()) {
+        let gameState: MyState = this.room.state;
+        if (gameState.currentTurn == this.gameState.getThisPlayerId()) {
             this.handlePlayerAction(cell);
         }
+
+        //if (!this.pieceController.hasActiveAction()) {
+        //}
 
         return true;
     }
