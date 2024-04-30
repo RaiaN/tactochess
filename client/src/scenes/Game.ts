@@ -145,7 +145,11 @@ export class TactonGame extends Scene {
 
         gameState.listen("currentTurn", (playerId, prevPlayerId) => {
             console.log('Server message: Current turn: ' + playerId);
+            this.nextTurn(playerId);
         });
+
+        // TODO: Enable once game is stable!
+        this.room.onError.once(() => this.scene.start('MainMenu'));
     }
 
     onJoin() {
