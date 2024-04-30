@@ -9,14 +9,6 @@ export class MyState extends Schema {
 
     @type("number") currentTurn: number;
     @type("string") winner: string;
-
-    /*getByCoords(x: number, y: number): Cell {
-        return this.cells[y * 8 + x];
-    }
-
-    getByIndex(index: number): Cell {
-        return this.cells[index];
-    }*/
     
     populateGrid() {
         console.log('populateGrid');
@@ -34,10 +26,8 @@ export class MyState extends Schema {
     }
 
     addPlayer(playerId: string) {
-        // this.playerIds.push(playerId);
-        
         let player = new Player;
-        player.playerId = this.players.size + 1;
+        player.playerId = this.players.size;
 
         this.players.set(playerId, player);
 
@@ -50,44 +40,4 @@ export class MyState extends Schema {
             this.cells.toArray()[cellOffset + i].occupiedBy = player.playerId;
         }
     }
-
-    startGame() {
-        // FIXME:
-        if (Math.random() < 0.5) {
-            // this.currentTurn = this.playerIds[0];
-        } else {
-            // this.currentTurn = this.playerIds[1];
-        }
-    }
-
-    /*nextTurn() {
-        playerIds: string[] = new Array<string>;
-
-        let firstPlayerId = this.players.get(this.playerIds[0]).playerId;
-        let secondPlayerId = this.players.get(this.playerIds[1]).playerId;
-
-        let nextPlayer: number = (this.currentTurn == firstPlayerId) ? secondPlayerId : firstPlayerId;
-        console.log('Next player turn: ' + nextPlayer);
-
-        this.currentTurn = nextPlayer;
-    }*/
-
-    /*updateGrid(index: number, occupiedBy: number) {
-        this.getByIndex(index).occupiedBy = occupiedBy;
-    }*/
-
-    /*checkWin(): boolean {
-        let playerCnt = 0;
-        let enemyCnt = 0;
-
-        this.cells.forEach((cell) => {
-            if (cell.occupiedBy == this.players[0].playerId) {
-                ++playerCnt; 
-            } else if (cell.occupiedBy == this.players[1].playerId) {
-                ++enemyCnt; 
-            }
-        });
-
-        return playerCnt == 0 || enemyCnt == 0;
-    }*/
 }
