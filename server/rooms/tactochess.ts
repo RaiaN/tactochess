@@ -90,7 +90,7 @@ export class Tactochess extends Room<MyState> {
         return false;
       }
 
-      if (this.state.currentTurn === this.getPlayerId((client.sessionId))) {
+      if (this.state.currentTurn === this.getPlayerId(client.sessionId)) {
         // TODO: parse data
         // TODO: Implement action!
       }
