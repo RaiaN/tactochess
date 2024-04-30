@@ -4,15 +4,19 @@ import { GameState } from '../state/GameState';
 import { GridComponent } from '../components/GridComponent';
 import { Piece } from '../components/Piece';
 import { PieceController } from '../components/PieceController';
+import { Client, Room } from 'colyseus.js';
+import { MyState } from '../../../server/rooms/state/State';
 
 export class TactonGame extends Scene {
+    room: Room;
+    
     gameState: GameState;
     grid: GridComponent;
     pieceController: PieceController;
 
     selectedCell: GridCell | null;
 
-    // Move to animation 
+    // TODO: Move to animation 
     // TODO: AnimController?
     pieceToMove: Piece | null;
     moveToTarget: GridCell | null;
@@ -58,6 +62,7 @@ export class TactonGame extends Scene {
     */
     //  You can use any of these from any function within this State.
     //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called 'world' or you'll over-write the world reference.
+    
     // Runs once at start of game
     create () {
 
@@ -102,9 +107,34 @@ export class TactonGame extends Scene {
 
         this.gameState.startGame();
 
+        // TODO: React to server message!
         // Show UI
         this.showLabels();
         this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
+
+        this.connectToServer();
+    }
+
+    async connectToServer() {
+        const wsUrl = 'ws://localhost:3001';
+        const client = new Client(wsUrl);
+        // The second argument has to include for the room as well as the current player
+        this.room = await client.joinOrCreate<MyState>('tactochess', {});
+
+        let numPlayers = 0;
+        this.room.state.players.onAdd(() => {
+            console.log('On player joined!');
+            numPlayers++;
+
+            if (numPlayers === 2) {
+                this.onJoin();
+            }
+        });
+    }
+
+    onJoin() {
+        // TODO:
+        console.log('On ALL players joined!');
     }
 
     onCellSelected(cell: GridCell): boolean {
