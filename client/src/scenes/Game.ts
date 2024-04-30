@@ -264,7 +264,7 @@ export class TactonGame extends Scene {
 
     checkWin(): boolean {
         if (this.gameState.checkWin()) {
-            this.notification = 'Game over! Winner: ' + this.gameState.getCurrentPlayer();
+            this.notification = 'Game over! Winner: ' + this.room.state.currentTurn;
             setTimeout(() =>  this.gameOver(), 2000);
            
             return true;
@@ -326,7 +326,7 @@ export class TactonGame extends Scene {
     }
 
     gameOver() {
-        this.gameState.winner = this.gameState.getCurrentPlayer();
+        // this.gameState.winner = this.gameState.getCurrentPlayer();
 
 		this.music.stop();
 		this.music.destroy();
