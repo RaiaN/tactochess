@@ -8,6 +8,9 @@ export class Tactochess extends Room<MyState> {
     randomMoveTimeout: Delayed;
 
     playerIds: string[] = new Array<string>;
+
+    // gameplay
+    selectedCellIndex: number = -1;
   
     onCreate () {
       console.log('onCreate');
@@ -126,6 +129,44 @@ export class Tactochess extends Room<MyState> {
   
         }
       }*/
+    }
+
+    checkPlayerAction(cellIndex: number) {
+      let cellOccupier: number = this.getByIndex(cellIndex).occupiedBy;
+
+        // 1. select phase
+        if (this.selectedCellIndex == -1) {
+            // cannot select enemy piece
+            if (cellOccupier != this.state.currentTurn) {
+                return false;
+            }
+
+            // implicit switch to next state: move/attack
+            // TODO: notify Client!
+ 
+        // 2. move/attack phase
+        } else {
+            // early exit: reselect piece
+            if (cellOccupier == this.state.currentTurn) {
+              // select new piece
+              // TODO: notify Client!
+
+            // Move piece
+            } else if (cellOccupier == -1) {
+                // TODO: PieceController logic
+                // TODO: notify Client to update view!
+
+                this.updateGrid(this.selectedCellIndex, -1);
+                this.updateGrid(cellIndex, this.state.currentTurn);
+
+                this.nextTurn();
+
+            // Attack piece
+            } else {
+                // TODO: PieceController logic
+                // TODO: notify Client to update view!
+            }
+        }
     }
 
     doRandomMove() {
