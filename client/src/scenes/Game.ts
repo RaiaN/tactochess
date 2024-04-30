@@ -140,6 +140,7 @@ export class TactonGame extends Scene {
         });
 
         gameState.cells.onChange((item: Cell, key: number) => {
+            // TODO:
             console.log('Server message: Grid modified!');
         });
 
@@ -248,7 +249,7 @@ export class TactonGame extends Scene {
                     this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
                 }
             }
-        }
+        }*/
 
         // TODO: fire message to server
         // TODO: server validates desired move can be done!
