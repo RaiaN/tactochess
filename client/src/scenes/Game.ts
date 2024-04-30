@@ -6,6 +6,7 @@ import { Piece } from '../components/Piece';
 import { PieceController } from '../components/PieceController';
 import { Client, Room } from 'colyseus.js';
 import { MyState } from '../../../server/rooms/state/State';
+import { Cell } from '../../../server/rooms/state/Cell';
 
 export class TactonGame extends Scene {
     room: Room;
@@ -121,14 +122,24 @@ export class TactonGame extends Scene {
         // The second argument has to include for the room as well as the current player
         this.room = await client.joinOrCreate<MyState>('tactochess', {});
 
+        let gameState: MyState =  this.room.state;
+
         let numPlayers = 0;
-        this.room.state.players.onAdd(() => {
+        gameState.players.onAdd(() => {
             console.log('On player joined!');
             numPlayers++;
 
             if (numPlayers === 2) {
                 this.onJoin();
             }
+        });
+
+        gameState.cells.onChange((item: Cell, key: number) => {
+            console.log('Server message: Grid modified!');
+        });
+
+        gameState.listen("currentTurn", (playerId, prevPlayerId) => {
+            console.log('Server message: Current turn: ' + playerId);
         });
     }
 
