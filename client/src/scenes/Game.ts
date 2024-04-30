@@ -7,6 +7,7 @@ import { PieceController } from '../components/PieceController';
 import { Client, Room } from 'colyseus.js';
 import { MyState } from '../../../server/rooms/state/State';
 import { Cell } from '../../../server/rooms/state/Cell';
+import { Player } from '../../../server/rooms/state/Player';
 
 export class TactonGame extends Scene {
     room: Room;
