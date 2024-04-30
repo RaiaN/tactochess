@@ -106,12 +106,10 @@ export class TactonGame extends Scene {
             };
         }
 
-        this.gameState.startGame();
-
         // TODO: React to server message!
         // Show UI
         this.showLabels();
-        this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
+        this.notification = 'Waiting for opponent..';
 
         this.connectToServer();
     }
