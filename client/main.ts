@@ -1,5 +1,4 @@
 import { DiscordSDK } from "@discord/embedded-app-sdk";
-import { Client, Room } from 'colyseus.js';
 import { Boot } from './src/scenes/Boot'
 import { GameOver } from './src/scenes/GameOver';
 import { Preloader } from './src/scenes/Preloader';
@@ -18,14 +17,6 @@ setupDiscordSdk().then(() => {
 async function setupDiscordSdk() {
   await discordSdk.ready();
 }*/
-
-const wsUrl = 'ws://localhost:3001';
-const client = new Client(wsUrl);
-
-let roomName = 'Channel';
-
-// The second argument has to include for the room as well as the current player
-const newRoom = await client.joinOrCreate('tactochess', {});
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
