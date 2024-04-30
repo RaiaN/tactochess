@@ -69,9 +69,9 @@ export class TactonGame extends Scene {
 
         // TODO: Server code
         this.gameState = new GameState();
-         // TODO: colyseus OnJoin()
-        this.gameState.addPlayer('red');
-        this.gameState.addPlayer('green');
+
+        // this.gameState.addPlayer('red');
+        // this.gameState.addPlayer('green');
 
         // Generate in order of back to front
         var worldSize = 512;
@@ -122,12 +122,19 @@ export class TactonGame extends Scene {
         // The second argument has to include for the room as well as the current player
         this.room = await client.joinOrCreate<MyState>('tactochess', {});
 
-        let gameState: MyState =  this.room.state;
+        let gameState: MyState = this.room.state;
 
         let numPlayers = 0;
-        gameState.players.onAdd(() => {
+        gameState.players.onAdd((item: Player, key: string) => {
             console.log('On player joined!');
             numPlayers++;
+
+            this.gameState.addPlayer(key);
+
+            if (this.room.sessionId == key) {
+                console.log('This player id: ' + item.playerId);
+                this.gameState.setThisPlayerId(item.playerId);
+            }
 
             if (numPlayers === 2) {
                 this.onJoin();
