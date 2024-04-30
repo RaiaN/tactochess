@@ -172,7 +172,12 @@ export class TactonGame extends Scene {
     }
 
     async handlePlayerAction(cell: GridCell): Promise<boolean> {
-        let cellOccupier = this.gameState.grid.getByIndex(cell.index).occupiedBy;
+        console.log('Client message: ' + cell.index);
+        this.room.send("action", cell.index);
+
+        // TODO:
+
+        /*let cellOccupier = this.gameState.grid.getByIndex(cell.index).occupiedBy;
 
         // 1. select phase
         if (this.selectedCell == null) {
