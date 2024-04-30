@@ -1,33 +1,30 @@
 
 import { Room, Delayed, Client } from '@colyseus/core';
-import { type, Schema, MapSchema, ArraySchema } from '@colyseus/schema';
+import { MyState } from "./state/State"
 
-
-class State extends Schema {
-  @type("string") currentTurn: string;
-  @type({ map: "boolean" }) players = new MapSchema<boolean>();
-  @type(["number"]) board: number[] = new ArraySchema<number>(0, 0, 0, 0, 0, 0, 0, 0, 0);
-  @type("string") winner: string;
-  @type("boolean") draw: boolean;
-}
-
-export class Tactochess extends Room<State> {
+export class Tactochess extends Room<MyState> {
     maxClients = 2;
     randomMoveTimeout: Delayed;
   
     onCreate () {
       console.log('onCreate');
-      this.setState(new State());
+      this.setState(new MyState());
       this.onMessage("action", (client, message) => this.playerAction(client, message));
     }
   
     onJoin (client: Client) {
       console.log('onJoin');
-      this.state.players.set(client.sessionId, true);
+
+      if (this.state.players.size == 0) {
+        this.state.populateGrid();
+      }
+
+      this.state.addPlayer(client.sessionId);
   
       if (this.state.players.size === 2) {
-        this.state.currentTurn = client.sessionId;
-        this.setAutoMoveTimeout();
+        this.state.currentTurn = this.state.players.get(client.sessionId).playerId;
+        console.log('Current turn player id: ' + this.state.currentTurn);
+        // this.setAutoMoveTimeout();
   
         // lock this room for new users
         this.lock();
@@ -35,8 +32,14 @@ export class Tactochess extends Room<State> {
     }
   
     playerAction (client: Client, data: any) {
-      if (this.state.winner || this.state.draw) {
+      console.log('playerAction...');
+      if (this.state.winner) {
         return false;
+      }
+
+      if (this.state.currentTurn === this.state.players.get(client.sessionId).playerId) {
+        // TODO: parse data
+        // TODO: Implement action!
       }
   
       /*if (client.sessionId === this.state.currentTurn) {
@@ -66,34 +69,32 @@ export class Tactochess extends Room<State> {
         }
       }*/
     }
+
+    doRandomMove() {
+
+    }
   
     setAutoMoveTimeout() {
       if (this.randomMoveTimeout) {
         this.randomMoveTimeout.clear();
       }
   
-      // this.randomMoveTimeout = this.clock.setTimeout(() => this.doRandomMove(), TURN_TIMEOUT * 1000);
-    }
-  
-    checkBoardComplete () {
-      return this.state.board
-        .filter(item => item === 0)
-        .length === 0;
+      // timeout is 3 seconds!
+      this.randomMoveTimeout = this.clock.setTimeout(() => this.doRandomMove(), 3 * 1000);
     }
   
     onLeave (client) {
       console.log('onLeave');
 
       this.state.players.delete(client.sessionId);
+      // this.state.playerIds.splice(client.sessionId == this.state.playerIds[0] ? 0 : 1, 1);
   
       if (this.randomMoveTimeout) {
         this.randomMoveTimeout.clear()
       }
-  
-      let remainingPlayerIds = Array.from(this.state.players.keys());
-      if (!this.state.winner && !this.state.draw && remainingPlayerIds.length > 0) {
-        this.state.winner = remainingPlayerIds[0]
+
+      if (!this.state.winner && this.state.players.size > 0) {
+        this.state.winner = this.state.players.keys().next().value;
       }
     }
-  
   }
