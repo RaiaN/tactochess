@@ -4,7 +4,7 @@ import { Grid } from "./Grid";
 export class GameState {
     players: Player[] = [];
     grid: Grid;
-    currentPlayer: string;
+    playerId: number;
     winner: string;
 
     constructor() {
@@ -25,20 +25,8 @@ export class GameState {
         }
     }
 
-    startGame() {
-        if (Math.random() < 0.5) {
-            this.currentPlayer = this.players[0].playerId;
-        } else {
-            this.currentPlayer = this.players[1].playerId;
-        }
-    }
-
-    nextTurn() {
-        let nextPlayer: string = (this.currentPlayer == this.players[0].playerId) ? this.players[1].playerId : this.players[0].playerId;
-
-        this.currentPlayer = nextPlayer;
-
-        console.log('Next turn: ' + this.currentPlayer);
+    setThisPlayerId(playerId: number) {
+        this.playerId = playerId;
     }
 
     updateGrid(index: number, occupiedBy: string) {
@@ -60,7 +48,7 @@ export class GameState {
         return playerCnt == 0 || enemyCnt == 0;
     }
 
-    getCurrentPlayer(): string {
-        return this.currentPlayer;
+    getThisPlayerId(): number {
+        return this.playerId;
     }
 }
