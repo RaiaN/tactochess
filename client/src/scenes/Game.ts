@@ -36,7 +36,7 @@ export class TactonGame extends Scene {
 
     // UI
     notificationLabel: Phaser.GameObjects.Text;
-    notification: string;
+    turnNotification: string;
     
 
     constructor()
@@ -110,7 +110,7 @@ export class TactonGame extends Scene {
         // TODO: React to server message!
         // Show UI
         this.showLabels();
-        this.notification = 'Waiting for opponent..';
+        this.turnNotification = 'Waiting for opponent..';
 
         this.connectToServer();
     }
@@ -130,11 +130,6 @@ export class TactonGame extends Scene {
 
             this.gameState.addPlayer(key);
 
-            if (this.room.sessionId == key) {
-                console.log('This player id: ' + item.playerId);
-                this.gameState.setThisPlayerId(item.playerId);
-            }
-
             if (numPlayers === 2) {
                 this.onJoin();
             }
@@ -147,6 +142,13 @@ export class TactonGame extends Scene {
 
         gameState.listen("currentTurn", (playerId, prevPlayerId) => {
             console.log('Server message: Current turn: ' + playerId);
+
+            // this.gameState.setCurrentTurnPlayerId(playerId);
+
+            if (this.isThisPlayerTurn(playerId)) {
+                this.gameState.setThisPlayerId(playerId);
+            }
+
             this.nextTurn(playerId);
         });
 
@@ -162,10 +164,9 @@ export class TactonGame extends Scene {
     onCellSelected(cell: GridCell): boolean {
         console.log('Cell selected: ' + cell.coordinates.x + ',' + cell.coordinates.y);
 
-        let gameState: MyState = this.room.state;
-        if (gameState.currentTurn == this.gameState.getThisPlayerId()) {
-            this.handlePlayerAction(cell);
-        }
+        // if (this.gameState.getCurrentTurnPlayerId() == this.gameState.getThisPlayerId()) {
+        this.handlePlayerAction(cell);
+        // }
 
         //if (!this.pieceController.hasActiveAction()) {
         //}
@@ -266,9 +267,13 @@ export class TactonGame extends Scene {
 
     }
 
+    isThisPlayerTurn(playerId: number): boolean {
+        let gameState: MyState = this.room.state;
+        return gameState.players.get(this.room.sessionId)?.playerId == playerId;
+    }
+
     nextTurn(playerId: number) {
-        // TODO:
-        this.notification = 'Current turn: ' + this.room.state.currentTurn;
+        this.turnNotification = this.isThisPlayerTurn(playerId) ? 'Your turn!' : 'Wait for your turn..';
 
         //if (!this.checkWin()) {
         // this.gameState.nextTurn();
@@ -278,7 +283,7 @@ export class TactonGame extends Scene {
 
     checkWin(): boolean {
         if (this.gameState.checkWin()) {
-            this.notification = 'Game over! Winner: ' + this.room.state.currentTurn;
+            this.turnNotification = 'Game over! Winner: ' + this.room.state.currentTurn;
             setTimeout(() =>  this.gameOver(), 2000);
            
             return true;
@@ -290,7 +295,7 @@ export class TactonGame extends Scene {
     update () {
         this.pieceController.update();
 
-        this.notificationLabel.text = this.notification;
+        this.notificationLabel.text = this.turnNotification;
         this.notificationLabel.setPosition(this.input.mousePointer.position.x + 20, this.input.mousePointer.position.y);
     }
 

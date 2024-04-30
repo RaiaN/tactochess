@@ -5,6 +5,7 @@ export class GameState {
     players: Player[] = [];
     grid: Grid;
     playerId: number;
+    currentTurnPlayerId: number = -1;
     winner: string;
 
     constructor() {
@@ -29,6 +30,10 @@ export class GameState {
         this.playerId = playerId;
     }
 
+    setCurrentTurnPlayerId(playerId: number) {
+        this.currentTurnPlayerId = playerId;
+    }
+
     updateGrid(index: number, occupiedBy: string) {
         this.grid.getByIndex(index).occupiedBy = occupiedBy;
     }
@@ -50,5 +55,9 @@ export class GameState {
 
     getThisPlayerId(): number {
         return this.playerId;
+    }
+
+    getCurrentTurnPlayerId(): number {
+        return this.currentTurnPlayerId;
     }
 }
