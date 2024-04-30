@@ -28,7 +28,8 @@ export class Tactochess extends Room<MyState> {
       this.playerIds.push(client.sessionId);
   
       if (this.state.players.size === 2) {
-        this.state.currentTurn = this.state.players.get(client.sessionId).playerId;
+        // TODO: Randomize!
+        this.pickRandomPlayerAsCurrent();
         console.log('Current turn player id: ' + this.state.currentTurn);
         // this.setAutoMoveTimeout();
   
