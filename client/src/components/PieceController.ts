@@ -61,6 +61,15 @@ export class PieceController
         // this.scene.physics.add.collider(this.pieces);
     }
 
+    movePiece(fromCell: GridCell, toCell: GridCell): boolean {
+        let piece: Piece = fromCell.getPiece()!;
+
+        piece.setLocation(toCell.worldLocation);
+        this.onMovementFinished.call(this);
+
+        return true;
+    }
+
     movePiece2(fromCell: GridCell, toCell: GridCell): boolean {
         let piece: Piece = fromCell.getPiece()!;
 
@@ -86,16 +95,25 @@ export class PieceController
         return false;
     }
 
-    movePiece(fromCell: GridCell, toCell: GridCell): boolean {
-        let piece: Piece = fromCell.getPiece()!;
+    async attackPiece(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
+        const attackAnim = async () => {
+            let piece: Piece = fromCell.getPiece()!;
 
-        piece.setLocation(toCell.worldLocation);
-        this.onMovementFinished.call(this);
+            // let angle = Phaser.Math.Angle.BetweenPoints(piece.getLocation(), toCell.worldLocation);
+            // piece.object.angle += angle;
 
-        return true;
+            piece.object.play('shoot_anim');
+            toCell.getPiece()?.destroy();
+            toCell.setPiece(null);
+
+            setTimeout(() =>  piece.playWalk(), 500);
+        }
+        await attackAnim();
+
+        return false;
     }
 
-    async attackPiece(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
+    async attackPiece2(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
         let attacker: Piece = fromCell.getPiece()!;
         let attackDistance: number = attacker.traits.attackDistance;
 
