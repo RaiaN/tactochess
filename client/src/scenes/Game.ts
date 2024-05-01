@@ -7,6 +7,7 @@ import { Client, Room } from 'colyseus.js';
 import { MyState } from "../state/State"
 import { Cell } from '../state/Cell';
 import { Player } from '../state/Player';
+import { discordAuth, discordSdk, setupDiscordSdk } from '../lib/discord';
 
 export class TactonGame extends Scene {
     room: Room;
@@ -107,6 +108,16 @@ export class TactonGame extends Scene {
     }
 
     async connectToServer() {
+        if (!discordAuth) await setupDiscordSdk();
+
+        if (discordAuth == null) {
+        // throw new Error('Discord Auth is not set up!');
+            await setupDiscordSdk().then(() => this.connectToServer());
+            return;
+        }
+
+        if (discordSdk.channelId == null || discordSdk.guildId == null) throw new Error('Channel ID or Guild ID is missing!');
+
         // LOCALHOST
         // const client = new Client("ws://localhost:2567/api");
         // COLYSEUS CLOUD (works only locally!)
@@ -117,7 +128,7 @@ export class TactonGame extends Scene {
         // WORKING in web browser!
         // const client = new Client("wss://gb-lhr-dbaf4307.colyseus.cloud");
 
-         // TEST Discord
+        // TEST Discord
         const client = new Client("wss://${location.host}/api");
 
         // The second argument has to include for the room as well as the current player
