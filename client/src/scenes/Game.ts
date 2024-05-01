@@ -114,7 +114,11 @@ export class TactonGame extends Scene {
 
         // TEST PRODUCTION
         // using 'wss' is VERY important to avoid issues related to "mixed content" and/or CORS 
-        const client = new Client("wss://gb-lhr-dbaf4307.colyseus.cloud");
+        // WORKING in web browser!
+        // const client = new Client("wss://gb-lhr-dbaf4307.colyseus.cloud");
+
+         // TEST Discord
+        const client = new Client("wss://${location.host}/api");
 
         // The second argument has to include for the room as well as the current player
         this.room = await client.joinOrCreate<MyState>('tactochess', {});
