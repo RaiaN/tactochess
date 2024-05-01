@@ -1,6 +1,7 @@
 import config from "@colyseus/tools";
 import { monitor } from "@colyseus/monitor";
 import express from 'express';
+import cors from 'cors';
 import { Tactochess } from "./rooms/Tactochess";
 
 export default config({
@@ -10,6 +11,8 @@ export default config({
     initializeExpress: (app) => {
        // Allow express to parse JSON bodies
         app.use(express.json());
+
+        app.use(cors());
 
         app.get("/helloworld", (req, res) => {
             res.send("YEP YEP IT WORKS!");
