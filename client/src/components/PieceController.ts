@@ -69,31 +69,6 @@ export class PieceController
         return true;
     }
 
-    movePiece2(fromCell: GridCell, toCell: GridCell): boolean {
-        let piece: Piece = fromCell.getPiece()!;
-
-        let moveDistance: number = piece.traits.moveDistance;
-
-        if (Phaser.Math.Distance.Snake(fromCell.coordinates.x, fromCell.coordinates.y, toCell.coordinates.x, toCell.coordinates.y) < moveDistance)
-        {
-            // this.pieceToMove = piece;
-            // this.moveToCell = toCell;
-            // this.hasReachedTarget = false;
-            
-            piece.setLocation(toCell.worldLocation);
-            this.onMovementFinished.call(this);
-
-            // Disable moev animation for now!
-            // this.pieceToMove.moveTo(this.moveToCell.worldLocation);
-
-            return true;
-        } else {
-            console.log('Cannot move the piece. Too far!');
-        }
-
-        return false;
-    }
-
     async attackPiece(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
         const attackAnim = async () => {
             let piece: Piece = fromCell.getPiece()!;
@@ -108,36 +83,6 @@ export class PieceController
             setTimeout(() =>  piece.playWalk(), 500);
         }
         await attackAnim();
-
-        return false;
-    }
-
-    async attackPiece2(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
-        let attacker: Piece = fromCell.getPiece()!;
-        let attackDistance: number = attacker.traits.attackDistance;
-
-        if (Phaser.Math.Distance.Snake(fromCell.coordinates.x, fromCell.coordinates.y, toCell.coordinates.x, toCell.coordinates.y) < attackDistance) {
-            // Destroy enemy piece
-            // fromCell.getPiece()!.object.setRotation()
-
-            const attackAnim = async () => {
-                let piece: Piece = fromCell.getPiece()!;
-
-                // let angle = Phaser.Math.Angle.BetweenPoints(piece.getLocation(), toCell.worldLocation);
-                // piece.object.angle += angle;
-
-                piece.object.play('shoot_anim');
-                toCell.getPiece()?.destroy();
-                toCell.setPiece(null);
-
-                setTimeout(() =>  piece.playWalk(), 500);
-            }
-            await attackAnim();
-
-            return true;
-        } else {
-            console.log('Cannot attack the piece. Too far!');
-        }
 
         return false;
     }
