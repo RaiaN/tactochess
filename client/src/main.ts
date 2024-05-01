@@ -8,7 +8,7 @@ import { TactonGame } from './scenes/Game';
 
 // Instantiate the SDK
 // Uncomment this once your work is done on browser, it will ONLY work on Discord Activities
-/*const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID, {disableConsoleLogOverride: true});
+const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID, {disableConsoleLogOverride: true});
 setupDiscordSdk().then(() => {
   console.log("Discord SDK is ready");
 }).catch((error) => {
@@ -16,7 +16,7 @@ setupDiscordSdk().then(() => {
 });
 async function setupDiscordSdk() {
   await discordSdk.ready();
-}*/
+}
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
