@@ -82,7 +82,7 @@ export class TactonGame extends Scene {
         // Music
 		this.music = this.sound.add('overworldMusic');
 		this.music.loop = true;
-		// this.music.play();
+		this.music.play();
 
         // Sound effects
         this.generateSounds();
