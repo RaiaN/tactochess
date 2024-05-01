@@ -1,6 +1,5 @@
 import { Scene } from 'phaser';
 import { GridCell } from '../components/GridCell';
-import { GameState } from '../state/GameState';
 import { GridComponent } from '../components/GridComponent';
 import { Piece } from '../components/Piece';
 import { PieceController } from '../components/PieceController';
@@ -11,8 +10,7 @@ import { Player } from '../../../server/rooms/state/Player';
 
 export class TactonGame extends Scene {
     room: Room;
-    
-    gameState: GameState;
+
     grid: GridComponent;
     pieceController: PieceController;
 
@@ -69,9 +67,6 @@ export class TactonGame extends Scene {
     // Runs once at start of game
     create () {
 
-        // TODO: Server code
-        this.gameState = new GameState();
-
         // Generate in order of back to front
         var worldSize = 512;
         this.physics.world.setBounds(0, 0, worldSize, worldSize);
@@ -126,8 +121,6 @@ export class TactonGame extends Scene {
             console.log('On player joined!');
             numPlayers++;
 
-            this.gameState.addPlayer(key);
-
             if (numPlayers === 2) {
                 this.onJoin();
             }
@@ -139,13 +132,7 @@ export class TactonGame extends Scene {
         });
 
         gameState.listen("currentTurn", (playerId, prevPlayerId) => {
-            console.log('Server message: Current turn: ' + playerId);
-
-            // this.gameState.setCurrentTurnPlayerId(playerId);
-
-            if (this.isThisPlayerTurn(playerId)) {
-                this.gameState.setThisPlayerId(playerId);
-            }
+            console.log('Server message: Current turn (player id): ' + playerId);
 
             this.nextTurn(playerId);
         });
@@ -304,15 +291,11 @@ export class TactonGame extends Scene {
         this.selectedCell?.unselect();
         this.selectedCell = null;
         this.selectedCellIndex = -1;
-
-        //if (!this.checkWin()) {
-        // this.gameState.nextTurn();
-        // return;
-        //}
     }
 
     checkWin(): boolean {
-        if (this.gameState.checkWin()) {
+        // TODO: wait for server to signal "game over"
+        if (false) {
             this.turnNotification = 'Game over! Winner: ' + this.room.state.currentTurn;
             setTimeout(() =>  this.gameOver(), 2000);
            
