@@ -4,15 +4,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@discord/embedded-app-sdk": "^1.1.2",
-    "colyseus.js": "^0.15.17",
+    "colyseus.js": "^0.15.18",
     "phaser": "^3.80.1"
   },
   "devDependencies": {
-    "vite": "^5.0.8"
+    "vite": "^5.2.9"
   }
 }
