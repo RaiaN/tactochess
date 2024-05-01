@@ -3,6 +3,7 @@
         "outDir": "../dist",
         "rootDir": "..",
         "target": "ESNext",
+        "types": ["vite/client"],
         "module": "ESNext",
         "moduleResolution": "node",
         "strict": true,
