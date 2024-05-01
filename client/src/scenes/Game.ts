@@ -111,7 +111,7 @@ export class TactonGame extends Scene {
         // TODO: React to server message!
         // Show UI
         this.showLabels();
-        this.turnNotification = 'Waiting for opponent..';
+        this.turnNotification = 'Waiting for opponent to join the game ..';
 
         this.connectToServer();
     }
@@ -237,34 +237,7 @@ export class TactonGame extends Scene {
 
                 console.log('On new cell selected (validated by server!): ' + cellIndex);
             }
-            
-            // Attack piece
-            /*} else {
-                let attackResult = await this.pieceController.attackPiece(this.selectedCell, cell);
-                if (attackResult) {
-                    console.log('Attack:');
-
-                    this.attackSound.play();
-                    // update game state
-                    this.gameState.updateGrid(cell.index, '');
-
-                    // drop active selection
-                    this.selectedCell.unselect();
-                    this.selectedCell = null;
-
-                    // TODO: ideally we need to wait until Attack animation has been completed!
-                    this.nextTurn();
-
-                    // update UI
-                    this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
-                }
-            }*/
         }
-
-        // TODO: fire message to server
-        // TODO: server validates desired move can be done!
-
-        return true;
     }
 
     onMovePiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
@@ -279,7 +252,7 @@ export class TactonGame extends Scene {
 
             cell.setPiece(this.selectedCell.getPiece());
 
-             // drop active selection
+            // drop active selection
             this.selectedCell.unselect();
             this.selectedCell.setPiece(null);
             this.selectedCell = null;
@@ -288,8 +261,25 @@ export class TactonGame extends Scene {
         }
     }
 
-    onAttackPiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
-        console.log('onAttackPiece_ClientCallback')
+    async onAttackPiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
+        console.log('onAttackPiece_ClientCallback');
+
+        let cell: GridCell = this.grid.getCellByIndex(cellIndex);
+
+        if (this.selectedCell != null) {
+            console.log(`Attacking enemy piece at ${cellIndex}`);
+
+            await this.pieceController.attackPiece(this.selectedCell, cell);
+
+            this.attackSound.play();
+
+            // drop active selection
+            this.selectedCell.unselect();
+            this.selectedCell.setPiece(null);
+            this.selectedCell = null;
+
+            this.selectedCellIndex = -1;
+        }
     }
 
     onMovementFinished() {
