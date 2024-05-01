@@ -17,6 +17,7 @@ export class TactonGame extends Scene {
     pieceController: PieceController;
 
     selectedCell: GridCell | null;
+    selectedCellIndex: number = -1;
 
     // TODO: Move to animation 
     // TODO: AnimController?
@@ -152,6 +153,25 @@ export class TactonGame extends Scene {
             this.nextTurn(playerId);
         });
 
+        gameState.listen("selectedCellIndex", (cellIndex, prevCellIndex) => {
+            console.log('Server message: selectedCellIndex changed to: ' + cellIndex);
+
+            this.onCellSelected_ClientCallback(cellIndex, prevCellIndex);
+        });
+
+        gameState.listen("moveToCellIndex", (cellIndex, prevCellIndex) => {
+            console.log('Server message: moveToCellIndex changed to: ' + cellIndex);
+
+            this.onMovePiece_ClientCallback(cellIndex, prevCellIndex);
+        });
+
+        gameState.listen("attackPieceCellIndex", (cellIndex, prevCellIndex) => {
+            console.log('Server message: attackPieceCellIndex changed to: ' + cellIndex);
+
+            this.onAttackPiece_ClientCallback(cellIndex, prevCellIndex);
+        });
+
+
         // TODO: Enable once game is stable!
         this.room.onError.once(() => this.scene.start('MainMenu'));
     }
@@ -174,64 +194,52 @@ export class TactonGame extends Scene {
         return true;
     }
 
-    async handlePlayerAction(cell: GridCell): Promise<boolean> {
+    handlePlayerAction(cell: GridCell) {
         console.log('Client message: ' + cell.index);
-        this.room.send("action", cell.index);
+        this.room.send("action", {cellIndex: cell.index });
 
-        // TODO:
+    }
 
-        /*let cellOccupier = this.gameState.grid.getByIndex(cell.index).occupiedBy;
+    onCellSelected_ClientCallback(cellIndex: number, prevCellIndex: number) {
+        console.log('onCellSelected_ClientCallback')
 
         // 1. select phase
-        if (this.selectedCell == null) {
-            // cannot select enemy piece
-            if (cellOccupier != this.gameState.currentPlayer) {
-                return false;
-            }
+        let cell: GridCell = this.grid.getCellByIndex(cellIndex);
 
-            // nothing to select
-            if (cell.getPiece() == null) {
-                return false;
-            }
+        if (cellIndex == -1) {
+            this.selectedCell?.unselect();
+            this.selectedCell = null;
+            this.selectedCellIndex = -1;
+            return;
+        }
 
+        if (this.selectedCellIndex == -1) {
             // select piece
             this.selectedCell = cell;
             this.selectedCell.select();
 
-            // implicit switch to next state: move/attack
- 
+            this.selectedCellIndex = cellIndex;
+
+            console.log('On new cell selected (validated by server!): ' + cellIndex);
         // 2. move/attack phase
         } else {
-            // early exit: reselect piece
-            if (cellOccupier == this.gameState.currentPlayer) {
+            let state: MyState = this.room.state;
+            let cellOccupier: number = state.cells.toArray()[cellIndex].occupiedBy;
+            let thisPlayerId: number = this.getThisPlayerId();
+
+            if (this.selectedCell != null && cellOccupier == thisPlayerId) {
                 // select new piece
                 this.selectedCell.unselect();
                 this.selectedCell = cell;
                 this.selectedCell.select();
 
-            // Move piece
-            } else if (cell.getPiece() == null) {
-                if (this.pieceController.movePiece(this.selectedCell, cell)) {
-                    console.log('MoveTo:');
-                    // update game state
+                this.selectedCellIndex = cellIndex;
 
-                    this.gameState.updateGrid(this.selectedCell.index, '');
-                    this.gameState.updateGrid(cell.index, this.gameState.currentPlayer);
-
-                    cell.setPiece(this.selectedCell.getPiece());
-
-                    // drop active selection
-                    this.selectedCell.unselect();
-                    this.selectedCell.setPiece(null);
-                    this.selectedCell = null;
-
-                    this.nextTurn();
-
-                    this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
-                }
-
+                console.log('On new cell selected (validated by server!): ' + cellIndex);
+            }
+            
             // Attack piece
-            } else {
+            /*} else {
                 let attackResult = await this.pieceController.attackPiece(this.selectedCell, cell);
                 if (attackResult) {
                     console.log('Attack:');
@@ -250,13 +258,38 @@ export class TactonGame extends Scene {
                     // update UI
                     this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
                 }
-            }
-        }*/
+            }*/
+        }
 
         // TODO: fire message to server
         // TODO: server validates desired move can be done!
 
         return true;
+    }
+
+    onMovePiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
+        console.log('onMovePiece_ClientCallback')
+
+        let cell: GridCell = this.grid.getCellByIndex(cellIndex);
+
+        if (this.selectedCell != null) {
+            console.log(`Moving player piece at ${this.selectedCell?.index} to a new cell (validated by server!): ${cellIndex}`);
+
+            this.pieceController.movePiece(this.selectedCell, cell);
+
+            cell.setPiece(this.selectedCell.getPiece());
+
+             // drop active selection
+            this.selectedCell.unselect();
+            this.selectedCell.setPiece(null);
+            this.selectedCell = null;
+
+            this.selectedCellIndex = -1;
+        }
+    }
+
+    onAttackPiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
+        console.log('onAttackPiece_ClientCallback')
     }
 
     onMovementFinished() {
@@ -267,13 +300,23 @@ export class TactonGame extends Scene {
 
     }
 
+    getThisPlayerId(): number {
+        let gameState: MyState = this.room.state;
+        return gameState.players.get(this.room.sessionId)!.playerId;
+    }
+
     isThisPlayerTurn(playerId: number): boolean {
         let gameState: MyState = this.room.state;
         return gameState.players.get(this.room.sessionId)?.playerId == playerId;
     }
 
     nextTurn(playerId: number) {
-        this.turnNotification = this.isThisPlayerTurn(playerId) ? 'Your turn!' : 'Wait for your turn..';
+        this.turnNotification = this.isThisPlayerTurn(playerId) ? 'Your turn!' : 'Wait for opponent turn..';
+
+        // drop any selection!
+        this.selectedCell?.unselect();
+        this.selectedCell = null;
+        this.selectedCellIndex = -1;
 
         //if (!this.checkWin()) {
         // this.gameState.nextTurn();

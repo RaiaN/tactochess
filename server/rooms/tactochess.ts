@@ -8,9 +8,6 @@ export class Tactochess extends Room<MyState> {
     randomMoveTimeout: Delayed;
 
     playerIds: string[] = new Array<string>;
-
-    // gameplay
-    selectedCellIndex: number = -1;
   
     onCreate () {
       console.log('onCreate');
@@ -91,80 +88,74 @@ export class Tactochess extends Room<MyState> {
   
     playerAction (client: Client, data: any) {
       let playerId: number = this.getPlayerId(client.sessionId);
-      console.log('Message from client (player id): ' + playerId);
-      console.log('Message data: ' + data);
+      console.log('------Message from client (player id): ' + playerId);
+      console.log('Message data: ' + JSON.stringify(data));
 
       if (this.state.winner) {
         return false;
       }
 
       if (this.state.currentTurn === this.getPlayerId(client.sessionId)) {
-        // TODO: parse data
-        // TODO: Implement action!
+        this.handlePlayerAction(data.cellIndex);
       }
-  
-      /*if (client.sessionId === this.state.currentTurn) {
-        const playerIds = Array.from(this.state.players.keys());
-  
-        const index = data.x + BOARD_WIDTH * data.y;
-  
-        if (this.state.board[index] === 0) {
-          const move = (client.sessionId === playerIds[0]) ? 1 : 2;
-          this.state.board[index] = move;
-  
-          if (this.checkWin(data.x, data.y, move)) {
-            this.state.winner = client.sessionId;
-  
-          } else if (this.checkBoardComplete()) {
-            this.state.draw = true;
-  
-          } else {
-            // switch turn
-            const otherPlayerSessionId = (client.sessionId === playerIds[0]) ? playerIds[1] : playerIds[0];
-  
-            this.state.currentTurn = otherPlayerSessionId;
-  
-            this.setAutoMoveTimeout();
-          }
-  
-        }
-      }*/
     }
 
-    checkPlayerAction(cellIndex: number) {
-      let cellOccupier: number = this.getByIndex(cellIndex).occupiedBy;
+    handlePlayerAction(cellIndex: number) {
+        let cellOccupier: number = this.getByIndex(cellIndex).occupiedBy;
+
+        console.log('handlePlayerAction');
+        console.log('this.state.selectedCellIndex: ' + this.state.selectedCellIndex);
+        console.log('cellIndex: ' + cellIndex);
+
+        if (this.state.selectedCellIndex == cellIndex) {
+          console.log('Server will ignore the client message as Player selected the same cell: ' + cellIndex);
+          return;
+        }
 
         // 1. select phase
-        if (this.selectedCellIndex == -1) {
+        if (this.state.selectedCellIndex == -1) {
             // cannot select enemy piece
             if (cellOccupier != this.state.currentTurn) {
                 return false;
             }
 
+            this.state.setSelectedCellIndex(cellIndex);
+            console.log('Player selected cell: ' + cellIndex);
+
             // implicit switch to next state: move/attack
-            // TODO: notify Client!
  
         // 2. move/attack phase
         } else {
-            // early exit: reselect piece
+            // early exit: change selection!
             if (cellOccupier == this.state.currentTurn) {
-              // select new piece
-              // TODO: notify Client!
+              this.state.setSelectedCellIndex(cellIndex);
+              console.log('Player reselected cell: ' + cellIndex);
 
             // Move piece
             } else if (cellOccupier == -1) {
                 // TODO: PieceController logic
                 // TODO: notify Client to update view!
 
-                this.updateGrid(this.selectedCellIndex, -1);
+                console.log(`Player is moving the piece from ${this.state.selectedCellIndex} to ${cellIndex}!`);
+
+                this.updateGrid(this.state.selectedCellIndex, -1);
                 this.updateGrid(cellIndex, this.state.currentTurn);
 
+                this.state.setMoveToCellIndex(cellIndex);
+                this.state.setSelectedCellIndex(-1);
                 this.nextTurn();
 
             // Attack piece
             } else {
                 // TODO: PieceController logic
                 // TODO: notify Client to update view!
+
+                console.log(`Player is attacking the enemy piece at ${cellIndex}!`);
+
+                this.updateGrid(cellIndex, -1);
+
+                this.state.setSelectedCellIndex(-1);
+                this.nextTurn();
             }
         }
     }

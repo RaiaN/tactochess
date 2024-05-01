@@ -8,6 +8,9 @@ export class MyState extends Schema {
     @type([ Cell ]) cells = new ArraySchema<Cell>();
 
     @type("number") currentTurn: number;
+    @type("number") selectedCellIndex: number;
+    @type("number") moveToCellIndex: number;
+    @type("number") attackPieceCellIndex: number;
     @type("string") winner: string;
     
     populateGrid() {
@@ -23,6 +26,10 @@ export class MyState extends Schema {
                 this.cells.push(cell);
             }
         }
+
+        this.selectedCellIndex = -1;
+        this.moveToCellIndex = -1;
+        this.attackPieceCellIndex = -1;
     }
 
     addPlayer(playerId: string) {
@@ -39,5 +46,13 @@ export class MyState extends Schema {
         for (let i = 0; i < 2; i++) {
             this.cells.toArray()[cellOffset + i].occupiedBy = player.playerId;
         }
+    }
+
+    setSelectedCellIndex(cellIndex: number) {
+        this.selectedCellIndex = cellIndex;
+    }
+
+    setMoveToCellIndex(cellIndex: number) {
+        this.moveToCellIndex = cellIndex;
     }
 }
