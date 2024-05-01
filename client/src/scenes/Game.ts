@@ -4,9 +4,9 @@ import { GridComponent } from '../components/GridComponent';
 import { Piece } from '../components/Piece';
 import { PieceController } from '../components/PieceController';
 import { Client, Room } from 'colyseus.js';
-import type { MyState } from "../../../server/src/rooms/state/State"
-import type { Cell } from '../../../server/src/rooms/state/Cell';
-import type { Player } from '../../../server/src/rooms/state/Player';
+import { MyState } from "../state/State"
+import { Cell } from '../state/Cell';
+import { Player } from '../state/Player';
 
 export class TactonGame extends Scene {
     room: Room;
