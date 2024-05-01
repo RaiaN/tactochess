@@ -15,7 +15,7 @@ export class Piece
     tween: Phaser.Tweens.Tween | null;
     traits: PieceTraits;
     
-    constructor(scene: Phaser.Scene, location: WorldLocation, isWhite: boolean)
+    constructor(scene: Phaser.Scene, location: WorldLocation, isPlayer: boolean, shouldFlipY: boolean)
     {
         this.scene = scene;
 
@@ -26,12 +26,14 @@ export class Piece
 
         this.playWalk();
     
-        if (isWhite) {
-            this.object.setTint(0xBB00BB);
-        } else {
+        if (isPlayer) {
+            // TODO: Explicitly mark this object as Player one (so Player always knows where are their pieces!)
             this.object.setTint(0x69FF00);
-            this.object.setFlipY(true);
+        } else {
+            this.object.setTint(0xBB00BB);
         }
+
+        this.object.setFlipY(shouldFlipY);
 
         // sprite offset
         this.object.setOrigin(0, 0);

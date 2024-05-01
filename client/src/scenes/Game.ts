@@ -76,7 +76,6 @@ export class TactonGame extends Scene {
         this.grid.onCellSelected = (cell) => this.onCellSelected(cell);
 
         this.pieceController = new PieceController(this, this.grid);
-        this.pieceController.spawnPieces();
         // this.pieceController.enableCollision();
         this.pieceController.onMovementFinished = () => this.onMovementFinished();
 
@@ -118,7 +117,9 @@ export class TactonGame extends Scene {
         let numPlayers = 0;
         gameState.players.onAdd((item: Player, key: string) => {
             console.log('On player joined!');
-            numPlayers++;
+            
+            this.pieceController.spawnPieces(this.room.sessionId == key, numPlayers);
+            ++numPlayers;
 
             if (numPlayers === 2) {
                 this.onJoin();

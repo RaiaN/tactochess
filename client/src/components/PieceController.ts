@@ -24,31 +24,13 @@ export class PieceController
         this.pieces = this.scene.physics.add.group();
     }
 
-    spawnPieces () {
-        this.spawnPlayerPieces();
-        this.spawnEnemyPieces();
-    }
-
-    spawnPlayerPieces () {
-        const offset = 0;
+    spawnPieces (isPlayer: boolean, numPlayers: number) {
+        const offset = numPlayers == 0 ? 0 : 6 * 8;
 
         for (var i = 0; i < 2; i++) {
             let cell = this.grid.cells[offset + i];
 
-            let piece = new Piece(this.scene, cell.worldLocation, true);
-            cell.setPiece(piece);
-
-            this.pieces.add(piece.object!);
-        }
-    }
-
-    spawnEnemyPieces () {
-        const offset = 6 * 8;
-
-        for (var i = 0; i < 2; i++) {
-            let cell = this.grid.cells[offset + i];
-
-            let piece = new Piece(this.scene, cell.worldLocation, false);
+            let piece = new Piece(this.scene, cell.worldLocation, isPlayer, numPlayers > 0);
             cell.setPiece(piece);
 
             this.pieces.add(piece.object!);
