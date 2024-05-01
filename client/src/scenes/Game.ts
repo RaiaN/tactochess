@@ -113,6 +113,7 @@ export class TactonGame extends Scene {
         // const client = new Client("ws://gb-lhr-dbaf4307.colyseus.cloud/api");
 
         // TEST PRODUCTION
+        // using 'wss' is VERY important to avoid issues related to "mixed content" and/or CORS 
         const client = new Client("wss://gb-lhr-dbaf4307.colyseus.cloud");
 
         // The second argument has to include for the room as well as the current player
