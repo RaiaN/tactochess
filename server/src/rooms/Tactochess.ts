@@ -186,7 +186,7 @@ export class Tactochess extends Room<MyState> {
       this.randomMoveTimeout = this.clock.setTimeout(() => this.doRandomMove(), 3 * 1000);
     }
   
-    onLeave (client) {
+    onLeave (client: Client) {
       console.log('onLeave');
 
       this.state.players.delete(client.sessionId);
