@@ -28,7 +28,6 @@ export class Tactochess extends Room<MyState> {
       this.playerIds.push(client.sessionId);
   
       if (this.state.players.size === 2) {
-        // TODO: Randomize!
         this.pickRandomPlayerAsCurrent();
         console.log('Current turn player id: ' + this.state.currentTurn);
         // this.setAutoMoveTimeout();
@@ -122,7 +121,7 @@ export class Tactochess extends Room<MyState> {
             this.state.setSelectedCellIndex(cellIndex);
             console.log('Player selected cell: ' + cellIndex);
 
-            // implicit switch to next state: move/attack
+            // implicit switch to next phase: move/attack
  
         // 2. move/attack phase
         } else {
@@ -154,6 +153,7 @@ export class Tactochess extends Room<MyState> {
 
                 this.updateGrid(cellIndex, -1);
 
+                this.state.setAttackPieceCellIndex(cellIndex);
                 this.state.setSelectedCellIndex(-1);
                 this.nextTurn();
             }

@@ -55,4 +55,8 @@ export class MyState extends Schema {
     setMoveToCellIndex(cellIndex: number) {
         this.moveToCellIndex = cellIndex;
     }
+
+    setAttackPieceCellIndex(cellIndex: number) {
+        this.attackPieceCellIndex = cellIndex;
+    }
 }
