@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "outDir": "dist",
         "target": "es2016",
         "types": ["vite/client"],
         "module": "ESNext",
@@ -18,8 +19,5 @@
         "noImplicitAny": false,
         "inlineSources": true,
         "sourceMap": true
-    },
-    "include": [
-       "src"
-    ]
+    }
 }
