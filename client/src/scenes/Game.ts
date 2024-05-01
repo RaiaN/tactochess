@@ -113,7 +113,7 @@ export class TactonGame extends Scene {
         // const client = new Client("ws://gb-lhr-dbaf4307.colyseus.cloud/api");
 
         // TEST PRODUCTION
-        const client = new Client("/api");
+        const client = new Client("ws://gb-lhr-dbaf4307.colyseus.cloud/api");
 
         // The second argument has to include for the room as well as the current player
         this.room = await client.joinOrCreate<MyState>('tactochess', {});
