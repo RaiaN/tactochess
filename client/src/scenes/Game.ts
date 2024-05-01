@@ -107,7 +107,9 @@ export class TactonGame extends Scene {
     }
 
     async connectToServer() {
-        const wsUrl = 'ws://localhost:3001';
+        // const wsUrl = 'ws://localhost:3001';
+        // TODO: Use public URL!
+        const wsUrl = "ws://0.tcp.eu.ngrok.io:14152";
         const client = new Client(wsUrl);
         // The second argument has to include for the room as well as the current player
         this.room = await client.joinOrCreate<MyState>('tactochess', {});
