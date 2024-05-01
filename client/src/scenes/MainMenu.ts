@@ -5,7 +5,8 @@ export class MainMenu extends Scene
 	music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 	background: Phaser.GameObjects.TileSprite;
 	splash: Phaser.GameObjects.Image;
-	playButton: Phaser.GameObjects.Text;
+	// playButton: Phaser.GameObjects.Text;
+	playButton: Phaser.GameObjects.Image;
 	
 	constructor ()
     {
@@ -20,12 +21,11 @@ export class MainMenu extends Scene
 
 		this.music = this.sound.add('openingMusic');
 		this.music.loop = true;
-		// this.music.play();
+		this.music.play();
 
 		let { width, height } = this.sys.game.canvas;
 
-		this.background = this.add.tileSprite(0, 0, width, height, 'tiles', 92)
-			.setOrigin(0);
+		this.background = this.add.tileSprite(0, 0, width, height, 'tiles', 92).setOrigin(0);
 
 		// Give it speed in x
 		// this.background.autoScroll(-20, 0);
@@ -33,8 +33,7 @@ export class MainMenu extends Scene
 		this.splash = this.add.image(width/2, height/2, 'logo');
 		this.splash.setOrigin(0.5);
 
-		this.playButton = this.add.text(width/2, height/2 + 100, 'playButton').setInteractive();
-		this.playButton.setOrigin(0.5);
+		this.playButton = this.add.image(width/2, height/2, 'playButton').setInteractive();
 
 		this.playButton.on('pointerdown', this.startGame, this); // Start game on click.
 		
