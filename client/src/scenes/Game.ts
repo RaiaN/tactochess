@@ -242,8 +242,8 @@ export class TactonGame extends Scene {
 
             this.pieceController.movePiece(this.selectedCell, cell);
 
-            this.selectedCell.setPiece(null);
             cell.setPiece(this.selectedCell.getPiece());
+            this.selectedCell.setPiece(null);
 
             // drop active selection
             this.selectedCell.unselect();
