@@ -1,8 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "../dist",
-        "rootDir": "..",
-        "target": "ESNext",
+        "target": "es2016",
         "types": ["vite/client"],
         "module": "ESNext",
         "moduleResolution": "node",
@@ -14,7 +12,6 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "useDefineForClassFields": false,
-        "declarationDir": "../build",
         "declaration": true,
         "allowSyntheticDefaultImports": true,
         "resolveJsonModule": true,
@@ -23,6 +20,6 @@
         "sourceMap": true
     },
     "include": [
-       "."
+       "src"
     ]
 }
