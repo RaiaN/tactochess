@@ -61,7 +61,7 @@ export class PieceController
         // this.scene.physics.add.collider(this.pieces);
     }
 
-    movePiece(fromCell: GridCell, toCell: GridCell): boolean {
+    movePiece2(fromCell: GridCell, toCell: GridCell): boolean {
         let piece: Piece = fromCell.getPiece()!;
 
         let moveDistance: number = piece.traits.moveDistance;
@@ -84,6 +84,15 @@ export class PieceController
         }
 
         return false;
+    }
+
+    movePiece(fromCell: GridCell, toCell: GridCell): boolean {
+        let piece: Piece = fromCell.getPiece()!;
+
+        piece.setLocation(toCell.worldLocation);
+        this.onMovementFinished.call(this);
+
+        return true;
     }
 
     async attackPiece(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
