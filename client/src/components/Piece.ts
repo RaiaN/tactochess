@@ -19,7 +19,7 @@ export class Piece
     {
         this.scene = scene;
 
-        this.object = this.scene.physics.add.sprite(location.x, location.y);
+        this.object = this.scene.physics.add.sprite(location.x, location.y, '');
 
         this.setUpSpriteAnim(this.object, 'walk', 'walk_anim', 0, 5);
         this.setUpSpriteAnim(this.object, 'shoot', 'shoot_anim', 0, 4);
