@@ -72,9 +72,6 @@ export class TactonGame extends Scene {
         // TODO: Server code
         this.gameState = new GameState();
 
-        // this.gameState.addPlayer('red');
-        // this.gameState.addPlayer('green');
-
         // Generate in order of back to front
         var worldSize = 512;
         this.physics.world.setBounds(0, 0, worldSize, worldSize);
@@ -85,7 +82,7 @@ export class TactonGame extends Scene {
 
         this.pieceController = new PieceController(this, this.grid);
         this.pieceController.spawnPieces();
-        this.pieceController.enableCollision();
+        // this.pieceController.enableCollision();
         this.pieceController.onMovementFinished = () => this.onMovementFinished();
 
         // Music
