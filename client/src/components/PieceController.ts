@@ -1,4 +1,3 @@
-
 import Phaser from 'phaser';
 import { Piece } from './Piece';
 import { GridComponent } from './GridComponent';
