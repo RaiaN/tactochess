@@ -100,7 +100,6 @@ export class TactonGame extends Scene {
             };
         }
 
-        // TODO: React to server message!
         // Show UI
         this.showLabels();
         this.turnNotification = 'Waiting for opponent to join the game ..';
@@ -315,7 +314,7 @@ export class TactonGame extends Scene {
     showLabels() {
 
         var text = '0';
-        const style = { font: '14px Arial', fill: '#100', align: 'center' };
+        const style = { font: '16px Arial', fill: '#FFFF00', align: 'center' };
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         this.notificationLabel = this.add.text(screenCenterX, 25, text, style);

@@ -1,13 +1,15 @@
-
 import { Room, Delayed, Client } from '@colyseus/core';
 import { MyState } from "./state/State"
 import { Cell } from './state/Cell';
+import { GameMode } from './GameMode';
 
 export class Tactochess extends Room<MyState> {
     maxClients = 2;
     randomMoveTimeout: Delayed;
 
     playerIds: string[] = new Array<string>;
+
+    gameMode: GameMode = new GameMode;
   
     onCreate () {
       console.log('onCreate');
@@ -132,30 +134,33 @@ export class Tactochess extends Room<MyState> {
 
             // Move piece
             } else if (cellOccupier == -1) {
-                // TODO: PieceController logic
-                // TODO: notify Client to update view!
+                if (this.gameMode.canMovePiece(this.getByIndex(cellIndex), this.getByIndex(this.state.selectedCellIndex))) {
+                  console.log(`Player is moving the piece from ${this.state.selectedCellIndex} to ${cellIndex}!`);
 
-                console.log(`Player is moving the piece from ${this.state.selectedCellIndex} to ${cellIndex}!`);
-
-                this.updateGrid(this.state.selectedCellIndex, -1);
-                this.updateGrid(cellIndex, this.state.currentTurn);
-
-                this.state.setMoveToCellIndex(cellIndex);
-                this.state.setSelectedCellIndex(-1);
-                this.nextTurn();
+                  this.updateGrid(this.state.selectedCellIndex, -1);
+                  this.updateGrid(cellIndex, this.state.currentTurn);
+  
+                  this.state.setMoveToCellIndex(cellIndex);
+                  this.state.setSelectedCellIndex(-1);
+                  this.nextTurn();
+                } else {
+                  console.log(`GameMode: Can't move the player piece from ${this.state.selectedCellIndex} to ${cellIndex}!`);
+                }
+                
 
             // Attack piece
             } else {
-                // TODO: PieceController logic
-                // TODO: notify Client to update view!
+                if (this.gameMode.canAttackPiece(this.getByIndex(cellIndex), this.getByIndex(this.state.selectedCellIndex))) {
+                  console.log(`Player is attacking the enemy piece at ${cellIndex}!`);
 
-                console.log(`Player is attacking the enemy piece at ${cellIndex}!`);
-
-                this.updateGrid(cellIndex, -1);
-
-                this.state.setAttackPieceCellIndex(cellIndex);
-                this.state.setSelectedCellIndex(-1);
-                this.nextTurn();
+                  this.updateGrid(cellIndex, -1);
+  
+                  this.state.setAttackPieceCellIndex(cellIndex);
+                  this.state.setSelectedCellIndex(-1);
+                  this.nextTurn();
+                } else {
+                  console.log(`GameMode: Can't attack the enemy piece at ${cellIndex}!`);
+                }
             }
         }
     }
