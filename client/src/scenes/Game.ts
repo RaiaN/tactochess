@@ -132,6 +132,8 @@ export class TactonGame extends Scene {
         const client = new Client("wss://${location.host}/api");
 
         this.turnNotification = (await client.http.get('/hello_world')).data;
+        throw new Error(this.turnNotification);
+
 
         // The second argument has to include for the room as well as the current player
         this.room = await client.joinOrCreate<MyState>('tactochess', {});
