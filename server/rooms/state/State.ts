@@ -11,7 +11,7 @@ export class MyState extends Schema {
     @type("number") selectedCellIndex: number;
     @type("number") moveToCellIndex: number;
     @type("number") attackPieceCellIndex: number;
-    @type("string") winner: string;
+    @type("number") winner: number;
     
     populateGrid() {
         console.log('populateGrid');
@@ -30,6 +30,7 @@ export class MyState extends Schema {
         this.selectedCellIndex = -1;
         this.moveToCellIndex = -1;
         this.attackPieceCellIndex = -1;
+        this.winner = -1;
     }
 
     addPlayer(playerId: string) {
@@ -58,5 +59,26 @@ export class MyState extends Schema {
 
     setAttackPieceCellIndex(cellIndex: number) {
         this.attackPieceCellIndex = cellIndex;
+    }
+
+    getWinner() {
+        let firstPlayerCnt = 0;
+        let secondPlayerCnt = 0;
+
+        for (let i = 0; i < 64; ++i) {
+            firstPlayerCnt += (this.cells.toArray()[i].occupiedBy == 0) ? 1: 0;
+            secondPlayerCnt += (this.cells.toArray()[i].occupiedBy == 1) ? 1: 0;
+        }
+
+        console.log('First player cnt: ' + firstPlayerCnt);
+        console.log('Second player cnt: ' + secondPlayerCnt);
+
+        if (firstPlayerCnt == 0) {
+            return 1;
+        } else if (secondPlayerCnt == 0) {
+            return 0;
+        }
+        // no winner
+        return -1;
     }
 }

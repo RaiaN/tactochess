@@ -2,24 +2,14 @@ import { Scene } from 'phaser';
 
 export class MainMenu extends Scene
 {
-    highestScore: integer;
 	music: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 	background: Phaser.GameObjects.TileSprite;
 	splash: Phaser.GameObjects.Image;
-	score: Phaser.GameObjects.Text;
-	instructions: Phaser.GameObjects.Text;
 	playButton: Phaser.GameObjects.Text;
 	
 	constructor ()
     {
         super('MainMenu');
-    }
-
-    init(score) {
-
-        score = score || 0;
-        this.highestScore = this.highestScore || 0;
-        this.highestScore = Math.max(score, this.highestScore);
     }
 
 	create () {
@@ -42,20 +32,6 @@ export class MainMenu extends Scene
 
 		this.splash = this.add.image(width/2, height/2, 'logo');
 		this.splash.setOrigin(0.5);
-
-        // High score
-        let text = "High score: "+ this.highestScore;
-        let style = { font: "15px Arial", fill: "#fff", align: "center" };
-
-        this.score = this.add.text(width/2, height - 50, text, style);
-        this.score.setOrigin(0.5);
-
-        // Instructions
-        text = "Move: WASD Keys   Attack: Hold Left-Mouse Button   Spell: Spacebar";
-        style = { font: "15px Arial", fill: "#fff", align: "center" };
-
-        this.instructions = this.add.text(width/2, height - 25, text, style);
-        this.instructions.setOrigin(0.5);
 
 		this.playButton = this.add.text(width/2, height/2 + 100, 'playButton').setInteractive();
 		this.playButton.setOrigin(0.5);
@@ -81,8 +57,6 @@ export class MainMenu extends Scene
 
 	    this.music.shutdown();
 	    this.splash.shutdown();
-        this.score.shutdown();
-        this.instructions.shutdown();
         this.background.shutdown();
         this.playButton.shutdown();
     }

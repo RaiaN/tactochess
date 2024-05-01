@@ -48,13 +48,21 @@ export class Tactochess extends Room<MyState> {
     }
 
     nextTurn() {
+      let winnerPlayerId = this.state.getWinner();
       let firstPlayerId = this.getPlayerId(this.playerIds[0]);
       let secondPlayerId = this.getPlayerId(this.playerIds[1]);
 
-      let nextPlayer: number = (this.state.currentTurn == firstPlayerId) ? secondPlayerId : firstPlayerId;
-      console.log('Next player turn: ' + nextPlayer);
-
-      this.state.currentTurn = nextPlayer;
+      if (winnerPlayerId == -1) {
+        let nextPlayer: number = (this.state.currentTurn == firstPlayerId) ? secondPlayerId : firstPlayerId;
+        console.log('Next player turn: ' + nextPlayer);
+  
+        this.state.currentTurn = nextPlayer;
+      } else if (winnerPlayerId == firstPlayerId || winnerPlayerId == secondPlayerId) {
+        this.state.winner = winnerPlayerId;
+        console.log('Player id won: ' + winnerPlayerId);
+      } else {
+        console.log('Server error! winnerPlayerId = ' + winnerPlayerId);
+      }
     }
 
     getByCoords(x: number, y: number): Cell {
@@ -92,7 +100,7 @@ export class Tactochess extends Room<MyState> {
       console.log('------Message from client (player id): ' + playerId);
       console.log('Message data: ' + JSON.stringify(data));
 
-      if (this.state.winner) {
+      if (this.state.winner != -1) {
         return false;
       }
 
@@ -144,7 +152,7 @@ export class Tactochess extends Room<MyState> {
                   this.state.setSelectedCellIndex(-1);
                   this.nextTurn();
                 } else {
-                  console.log(`GameMode: Can't move the player piece from ${this.state.selectedCellIndex} to ${cellIndex}!`);
+                  console.log(`GameMode: Can't move the player piece from ${this.state.selectedCellIndex} to ${cellIndex}. Too far!`);
                 }
                 
 
@@ -159,14 +167,14 @@ export class Tactochess extends Room<MyState> {
                   this.state.setSelectedCellIndex(-1);
                   this.nextTurn();
                 } else {
-                  console.log(`GameMode: Can't attack the enemy piece at ${cellIndex}!`);
+                  console.log(`GameMode: Can't attack the enemy piece at ${cellIndex}. Too far!`);
                 }
             }
         }
     }
 
     doRandomMove() {
-
+      // TODO: Skip turn for now!
     }
   
     setAutoMoveTimeout() {

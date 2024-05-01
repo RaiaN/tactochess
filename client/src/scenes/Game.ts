@@ -155,6 +155,13 @@ export class TactonGame extends Scene {
             this.onAttackPiece_ClientCallback(cellIndex, prevCellIndex);
         });
 
+        gameState.listen("winner", (winnerPlayerId) => {
+            console.log('Server message: winner set to: ' + winnerPlayerId);
+
+            if (winnerPlayerId != -1) {
+                this.gameOver(winnerPlayerId);
+            }
+        });
 
         // TODO: Enable once game is stable!
         this.room.onError.once(() => this.scene.start('MainMenu'));
@@ -191,6 +198,7 @@ export class TactonGame extends Scene {
         let cell: GridCell = this.grid.getCellByIndex(cellIndex);
 
         if (cellIndex == -1) {
+            console.log('Unselecting cell: ' + cellIndex);
             this.selectedCell?.unselect();
             this.selectedCell = null;
             this.selectedCellIndex = -1;
@@ -258,8 +266,7 @@ export class TactonGame extends Scene {
             this.attackSound.play();
 
             // drop active selection
-            this.selectedCell.unselect();
-            this.selectedCell.setPiece(null);
+            this.selectedCell?.unselect();
             this.selectedCell = null;
 
             this.selectedCellIndex = -1;
@@ -291,17 +298,6 @@ export class TactonGame extends Scene {
         this.selectedCell?.unselect();
         this.selectedCell = null;
         this.selectedCellIndex = -1;
-    }
-
-    checkWin(): boolean {
-        // TODO: wait for server to signal "game over"
-        if (false) {
-            this.turnNotification = 'Game over! Winner: ' + this.room.state.currentTurn;
-            setTimeout(() =>  this.gameOver(), 2000);
-           
-            return true;
-        }
-        return false;
     }
 
     // Checks for actions and changes
@@ -352,31 +348,25 @@ export class TactonGame extends Scene {
     }
 
     generateSounds () {
-
         this.attackSound = this.sound.add('attackSound');
         this.playerSound = this.sound.add('playerSound');
     }
 
-    gameOver() {
-        // this.gameState.winner = this.gameState.getCurrentPlayer();
+    gameOver(playerId: number) {
+        this.notificationLabel.setFontSize(20);
+        
+        if (this.getThisPlayerId() == playerId) {
+            this.turnNotification = 'Victory!';
+            this.notificationLabel.setColor('#FFFFFF');
+        } else {
+            this.turnNotification = 'Defeat!';
+        }
 
 		this.music.stop();
 		this.music.destroy();
 
-        //  Here you should destroy anything you no longer need.
-        //  Stop music, delete sprites, purge caches, free resources, all that good stuff.
-
-        //  Then let's go back to the main menu.
-        this.scene.start('MainMenu'/*, true, false, this.xp + this.gold*/);
-    }
-
-    quitGame (pointer) {
-
-        //  Here you should destroy anything you no longer need.
-        //  Stop music, delete sprites, purge caches, free resources, all that good stuff.
-		this.music.stop();
-
-        //  Then let's go back to the main menu.
-        this.scene.start('MainMenu'/*, true, false, this.xp + this.gold*/);
+        setTimeout(() => {
+            this.scene.start('GameOver');
+        }, 2000);
     }
 };

@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import { Server } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 
-import { Tactochess } from "./rooms/tactochess"
+import { Tactochess } from "./rooms/Tactochess"
 
 dotenv.config({ path: "../.env" });
 
