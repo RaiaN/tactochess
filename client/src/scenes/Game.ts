@@ -130,7 +130,7 @@ export class TactonGame extends Scene {
 
         // TEST Discord
         // const client = new Client("wss://${location.host}/api");
-        const client = new Client(`wss://${process.env.PUBLIC_ENV__DISCORD_CLIENT_ID}.discordsays.com/api`);
+        const client = new Client(`wss://1229829326296584223.discordsays.com/api`);
 
         // this.turnNotification = (await client.http.get('/hello_world')).data;
 
