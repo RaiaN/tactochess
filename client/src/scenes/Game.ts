@@ -110,11 +110,11 @@ export class TactonGame extends Scene {
     async connectToServer() {
         if (!discordAuth) await setupDiscordSdk();
 
-        if (discordAuth == null) {
+        /*if (discordAuth == null) {
         // throw new Error('Discord Auth is not set up!');
             await setupDiscordSdk().then(() => this.connectToServer());
             return;
-        }
+        }*/
 
         if (discordSdk.channelId == null || discordSdk.guildId == null) throw new Error('Channel ID or Guild ID is missing!');
 
