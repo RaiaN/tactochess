@@ -50,6 +50,7 @@ export async function setupDiscordSdk() {
     }),
   });
   const { access_token } = await response.json();
+  console.log(access_token);
   
   // Authenticate with Discord client (using the access_token)
   discordAuth = await discordSdk.commands.authenticate({
