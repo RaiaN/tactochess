@@ -44,7 +44,7 @@ export class MyState extends Schema {
             cellOffset = 6 * 8;
         }
 
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < 16; i++) {
             this.cells.toArray()[cellOffset + i].occupiedBy = player.playerId;
         }
     }

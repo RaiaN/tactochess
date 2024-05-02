@@ -27,7 +27,7 @@ export class PieceController
     spawnPieces (isPlayer: boolean, numPlayers: number) {
         const offset = numPlayers == 0 ? 0 : 6 * 8;
 
-        for (var i = 0; i < 2; i++) {
+        for (var i = 0; i < 16; i++) {
             let cell = this.grid.cells[offset + i];
 
             let piece = new Piece(this.scene, cell.worldLocation, isPlayer, numPlayers > 0);
