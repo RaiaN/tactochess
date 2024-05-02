@@ -28,7 +28,7 @@ export async function setupDiscordSdk() {
   await discordSdk.ready();
 
   // Authorize with Discord Client
-  const { code } = await discordSdk.commands.authorize({
+  /*const { code } = await discordSdk.commands.authorize({
     client_id: import.meta.env.VITE_DISCORD_CLIENT_ID,
     response_type: "code",
     state: "",
@@ -40,7 +40,7 @@ export async function setupDiscordSdk() {
   });
 
   // Retrieve an access_token from your activity's server
-  const response = await fetch("/api/token", {
+  const response = await fetch("/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -56,5 +56,5 @@ export async function setupDiscordSdk() {
   discordAuth = await discordSdk.commands.authenticate({
     access_token,
   });
-  if (discordAuth == null) throw new Error("Authenticate command failed");
+  if (discordAuth == null) throw new Error("Authenticate command failed");*/
 }
