@@ -18,7 +18,7 @@ export default config({
             res.send("YEP YEP IT WORKS!");
         });
 
-        app.post("/api/token", async (req, res) => {
+        app.post("/token", async (req, res) => {
   
             // Exchange the code for an access_token
             const response = await fetch(`https://discord.com/api/oauth2/token`, {
