@@ -42,10 +42,12 @@ export class PieceController
         // this.scene.physics.add.collider(this.pieces);
     }
 
-    movePiece(fromCell: GridCell, toCell: GridCell): boolean {
+    async movePiece(fromCell: GridCell, toCell: GridCell): Promise<boolean> {
         let piece: Piece = fromCell.getPiece()!;
 
-        piece.setLocation(toCell.worldLocation);
+        // Animate the piece moving to the target cell
+        await piece.moveTo(toCell.worldLocation);
+        
         this.onMovementFinished.call(this);
 
         return true;

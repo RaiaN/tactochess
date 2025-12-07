@@ -139,8 +139,29 @@ export class Piece
         this.object.destroy();
     }
 
-    moveTo(newLocation: WorldLocation) {
-        console.log('Moving piece to a new location:' + newLocation.x, newLocation.y);
+    moveTo(newLocation: WorldLocation): Promise<void> {
+        return new Promise((resolve) => {
+            const duration = 300; // Animation duration in ms
+            
+            // Animate the sprite
+            this.scene.tweens.add({
+                targets: this.object,
+                x: newLocation.x,
+                y: newLocation.y,
+                ease: 'Quad.easeInOut',
+                duration: duration,
+                onComplete: () => resolve()
+            });
+            
+            // Animate the indicator ring to follow
+            this.scene.tweens.add({
+                targets: this.indicatorGraphics,
+                x: newLocation.x + CELL_SIZE / 2,
+                y: newLocation.y + CELL_SIZE / 2,
+                ease: 'Quad.easeInOut',
+                duration: duration
+            });
+        });
     }
 
     select() {
