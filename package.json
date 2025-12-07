@@ -1,0 +1,15 @@
+{
+  "name": "tactochess",
+  "version": "1.0.0",
+  "description": "Local development setup for Tactochess",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev": "node dev.js",
+    "server": "cd server && npm start",
+    "client": "cd client && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

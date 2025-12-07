@@ -10,7 +10,9 @@ export class MyState extends Schema {
     @type("number") currentTurn: number;
     @type("number") selectedCellIndex: number;
     @type("number") moveToCellIndex: number;
+    @type("number") moveFromCellIndex: number;
     @type("number") attackPieceCellIndex: number;
+    @type("number") attackFromCellIndex: number;
     @type("number") winner: number;
     
     populateGrid() {
@@ -29,7 +31,9 @@ export class MyState extends Schema {
 
         this.selectedCellIndex = -1;
         this.moveToCellIndex = -1;
+        this.moveFromCellIndex = -1;
         this.attackPieceCellIndex = -1;
+        this.attackFromCellIndex = -1;
         this.winner = -1;
     }
 
@@ -44,7 +48,7 @@ export class MyState extends Schema {
             cellOffset = 6 * 8;
         }
 
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < 16; i++) {
             this.cells.toArray()[cellOffset + i].occupiedBy = player.playerId;
         }
     }
@@ -53,12 +57,14 @@ export class MyState extends Schema {
         this.selectedCellIndex = cellIndex;
     }
 
-    setMoveToCellIndex(cellIndex: number) {
-        this.moveToCellIndex = cellIndex;
+    setMoveToCellIndex(fromCellIndex: number, toCellIndex: number) {
+        this.moveFromCellIndex = fromCellIndex;
+        this.moveToCellIndex = toCellIndex;
     }
 
-    setAttackPieceCellIndex(cellIndex: number) {
-        this.attackPieceCellIndex = cellIndex;
+    setAttackPieceCellIndex(fromCellIndex: number, targetCellIndex: number) {
+        this.attackFromCellIndex = fromCellIndex;
+        this.attackPieceCellIndex = targetCellIndex;
     }
 
     getWinner() {

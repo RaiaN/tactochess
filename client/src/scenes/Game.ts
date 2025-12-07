@@ -108,7 +108,8 @@ export class TactonGame extends Scene {
     }
 
     async connectToServer() {
-        if (!discordAuth) await setupDiscordSdk();
+        // NOTE: Comment out Discord SDK for local testing
+        // if (!discordAuth) await setupDiscordSdk();
 
         /*if (discordAuth == null) {
         // throw new Error('Discord Auth is not set up!');
@@ -116,10 +117,11 @@ export class TactonGame extends Scene {
             return;
         }*/
 
-        if (discordSdk.channelId == null || discordSdk.guildId == null) throw new Error('Channel ID or Guild ID is missing!');
+        // NOTE: Comment out Discord check for local testing
+        // if (discordSdk.channelId == null || discordSdk.guildId == null) throw new Error('Channel ID or Guild ID is missing!');
 
         // LOCALHOST
-        // const client = new Client("ws://localhost:2567/api");
+        const client = new Client("ws://localhost:2567");
         // COLYSEUS CLOUD (works only locally!)
         // const client = new Client("ws://gb-lhr-dbaf4307.colyseus.cloud/api");
 
@@ -130,7 +132,7 @@ export class TactonGame extends Scene {
 
         // TEST Discord
         // const client = new Client("wss://${location.host}/api");
-        const client = new Client(`wss://1229829326296584223.discordsays.com/api`);
+        // const client = new Client(`wss://1229829326296584223.discordsays.com/api`);
 
         // this.turnNotification = (await client.http.get('/hello_world')).data;
 
@@ -260,20 +262,31 @@ export class TactonGame extends Scene {
     onMovePiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
         console.log('onMovePiece_ClientCallback')
 
-        let cell: GridCell = this.grid.getCellByIndex(cellIndex);
+        let gameState: MyState = this.room.state;
+        let fromCellIndex: number = gameState.moveFromCellIndex;
 
+        if (fromCellIndex == -1 || cellIndex == -1) {
+            console.log('Invalid move indices, skipping');
+            return;
+        }
+
+        let fromCell: GridCell = this.grid.getCellByIndex(fromCellIndex);
+        let toCell: GridCell = this.grid.getCellByIndex(cellIndex);
+
+        console.log(`Moving player piece from ${fromCellIndex} to ${cellIndex} (validated by server!)`);
+
+        this.pieceController.movePiece(fromCell, toCell);
+
+        toCell.setPiece(fromCell.getPiece());
+
+        // drop active selection on the source cell
+        fromCell.unselect();
+        fromCell.setPiece(null);
+
+        // also clear local selection state if it was selected
         if (this.selectedCell != null) {
-            console.log(`Moving player piece at ${this.selectedCell?.index} to a new cell (validated by server!): ${cellIndex}`);
-
-            this.pieceController.movePiece(this.selectedCell, cell);
-
-            cell.setPiece(this.selectedCell.getPiece());
-
-            // drop active selection
             this.selectedCell.unselect();
-            this.selectedCell.setPiece(null);
             this.selectedCell = null;
-
             this.selectedCellIndex = -1;
         }
     }
@@ -281,19 +294,30 @@ export class TactonGame extends Scene {
     async onAttackPiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
         console.log('onAttackPiece_ClientCallback');
 
-        let cell: GridCell = this.grid.getCellByIndex(cellIndex);
+        let gameState: MyState = this.room.state;
+        let fromCellIndex: number = gameState.attackFromCellIndex;
 
+        if (fromCellIndex == -1 || cellIndex == -1) {
+            console.log('Invalid attack indices, skipping');
+            return;
+        }
+
+        let fromCell: GridCell = this.grid.getCellByIndex(fromCellIndex);
+        let targetCell: GridCell = this.grid.getCellByIndex(cellIndex);
+
+        console.log(`Attacking enemy piece at ${cellIndex} from ${fromCellIndex}`);
+
+        await this.pieceController.attackPiece(fromCell, targetCell);
+
+        this.attackSound.play();
+
+        // drop active selection on the source cell
+        fromCell.unselect();
+
+        // also clear local selection state if it was selected
         if (this.selectedCell != null) {
-            console.log(`Attacking enemy piece at ${cellIndex}`);
-
-            await this.pieceController.attackPiece(this.selectedCell, cell);
-
-            this.attackSound.play();
-
-            // drop active selection
-            this.selectedCell?.unselect();
+            this.selectedCell.unselect();
             this.selectedCell = null;
-
             this.selectedCellIndex = -1;
         }
     }

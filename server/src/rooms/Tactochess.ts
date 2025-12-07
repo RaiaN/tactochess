@@ -148,7 +148,7 @@ export class Tactochess extends Room<MyState> {
                   this.updateGrid(this.state.selectedCellIndex, -1);
                   this.updateGrid(cellIndex, this.state.currentTurn);
   
-                  this.state.setMoveToCellIndex(cellIndex);
+                  this.state.setMoveToCellIndex(this.state.selectedCellIndex, cellIndex);
                   this.state.setSelectedCellIndex(-1);
                   this.nextTurn();
                 } else {
@@ -163,7 +163,7 @@ export class Tactochess extends Room<MyState> {
 
                   this.updateGrid(cellIndex, -1);
   
-                  this.state.setAttackPieceCellIndex(cellIndex);
+                  this.state.setAttackPieceCellIndex(this.state.selectedCellIndex, cellIndex);
                   this.state.setSelectedCellIndex(-1);
                   this.nextTurn();
                 } else {

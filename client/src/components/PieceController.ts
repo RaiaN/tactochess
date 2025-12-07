@@ -6,7 +6,7 @@ import { GridCell } from './GridCell';
 export class PieceController
 {
     scene: Phaser.Scene;
-    pieces: Phaser.Physics.Arcade.Group;
+    pieces: Piece[];
     grid: GridComponent;
 
     // moveToAnimation
@@ -21,7 +21,7 @@ export class PieceController
         this.scene = scene;
         this.grid = grid;
 
-        this.pieces = this.scene.physics.add.group();
+        this.pieces = [];
     }
 
     spawnPieces (isPlayer: boolean, numPlayers: number) {
@@ -33,7 +33,7 @@ export class PieceController
             let piece = new Piece(this.scene, cell.worldLocation, isPlayer, numPlayers > 0);
             cell.setPiece(piece);
 
-            this.pieces.add(piece.object!);
+            this.pieces.push(piece);
         }
     }
 
@@ -55,14 +55,19 @@ export class PieceController
         const attackAnim = async () => {
             let piece: Piece = fromCell.getPiece()!;
 
-            // let angle = Phaser.Math.Angle.BetweenPoints(piece.getLocation(), toCell.worldLocation);
-            // piece.object.angle += angle;
+            // Quick attack animation - scale up briefly
+            this.scene.tweens.add({
+                targets: piece.container,
+                scaleX: 1.3,
+                scaleY: 1.3,
+                duration: 150,
+                yoyo: true,
+                ease: 'Power2'
+            });
 
-            piece.object.play('shoot_anim');
+            // Destroy the target piece
             toCell.getPiece()?.destroy();
             toCell.setPiece(null);
-
-            setTimeout(() =>  piece.playWalk(), 500);
         }
         await attackAnim();
 
