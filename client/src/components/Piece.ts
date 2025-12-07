@@ -8,7 +8,6 @@ type PieceTraits = {
 }
 
 const CELL_SIZE = 64;
-const PAWN_RADIUS = 22;
 
 // Bright indicator color for YOUR pieces
 const PLAYER_INDICATOR_COLOR = 0x00BFFF;  // Bright cyan/blue
@@ -16,40 +15,47 @@ const PLAYER_INDICATOR_COLOR = 0x00BFFF;  // Bright cyan/blue
 export class Piece
 {
     scene: Phaser.Scene;
-    container: Phaser.GameObjects.Container;
-    graphics: Phaser.GameObjects.Graphics;
+    object: Phaser.GameObjects.Sprite;
     indicatorGraphics: Phaser.GameObjects.Graphics;
     tween: Phaser.Tweens.Tween | null;
     indicatorTween: Phaser.Tweens.Tween | null;
     traits: PieceTraits;
-    isWhite: boolean;
-    isMine: boolean;  // Does this piece belong to the local player?
+    isMine: boolean;
     
     constructor(scene: Phaser.Scene, location: WorldLocation, isLocalPlayer: boolean, isSecondPlayer: boolean)
     {
         this.scene = scene;
         this.isMine = isLocalPlayer;
-        // Local player is always white from their perspective, opponent is black
-        this.isWhite = isLocalPlayer;
         
-        // Create container first
-        this.container = scene.add.container(location.x + CELL_SIZE / 2, location.y + CELL_SIZE / 2);
-        
-        // Create indicator ring (drawn behind the pawn)
+        // Create indicator ring first (behind the soldier)
         this.indicatorGraphics = scene.add.graphics();
-        this.container.add(this.indicatorGraphics);
+        this.indicatorGraphics.setPosition(location.x + CELL_SIZE / 2, location.y + CELL_SIZE / 2);
         
-        // Create graphics for the pawn
-        this.graphics = scene.add.graphics();
-        this.container.add(this.graphics);
+        // Create the soldier sprite
+        this.object = this.scene.add.sprite(location.x, location.y, 'walk', 0);
         
-        this.drawPawn();
+        // Set up animations
+        this.setUpSpriteAnim('walk', 'walk_anim', 0, 5);
+        this.setUpSpriteAnim('shoot', 'shoot_anim', 0, 4);
+        this.playWalk();
         
-        // Add pulsing indicator for player's own pieces
+        // Apply color based on ownership
         if (this.isMine) {
+            // Your soldiers: no tint (original colors) + cyan indicator
+            this.object.clearTint();
             this.drawIndicator();
             this.startIndicatorPulse();
+        } else {
+            // Enemy soldiers: reddish tint to show they're hostile (keeps details visible)
+            this.object.setTint(0xFF6666);
         }
+        
+        // Flip enemy soldiers to face the other direction
+        this.object.setFlipY(isSecondPlayer);
+        
+        // Position and scale
+        this.object.setOrigin(0, 0);
+        this.object.setScale(0.15);
         
         this.traits = {
             speed: 125,
@@ -61,19 +67,19 @@ export class Piece
     drawIndicator() {
         this.indicatorGraphics.clear();
         
-        // Glowing ring under the pawn
+        // Glowing ring under the soldier
         this.indicatorGraphics.lineStyle(3, PLAYER_INDICATOR_COLOR, 0.9);
-        this.indicatorGraphics.strokeCircle(0, 12, PAWN_RADIUS * 1.1);
+        this.indicatorGraphics.strokeCircle(0, 0, 28);
         
-        // Inner glow
+        // Outer glow
         this.indicatorGraphics.lineStyle(6, PLAYER_INDICATOR_COLOR, 0.3);
-        this.indicatorGraphics.strokeCircle(0, 12, PAWN_RADIUS * 1.2);
+        this.indicatorGraphics.strokeCircle(0, 0, 32);
     }
 
     startIndicatorPulse() {
         this.indicatorTween = this.scene.tweens.add({
             targets: this.indicatorGraphics,
-            alpha: 0.5,
+            alpha: 0.4,
             ease: 'Sine.easeInOut',
             duration: 800,
             repeat: -1,
@@ -81,55 +87,56 @@ export class Piece
         });
     }
 
-    drawPawn() {
-        this.graphics.clear();
-        
-        const baseColor = this.isWhite ? 0xFFFFFF : 0x1a1a1a;
-        const outlineColor = this.isWhite ? 0x333333 : 0xCCCCCC;
-        const highlightColor = this.isWhite ? 0xf0f0f0 : 0x3a3a3a;
-        
-        // Shadow
-        this.graphics.fillStyle(0x000000, 0.3);
-        this.graphics.fillEllipse(2, 4, PAWN_RADIUS * 1.6, PAWN_RADIUS * 0.5);
-        
-        // Base (wide bottom)
-        this.graphics.fillStyle(baseColor, 1);
-        this.graphics.fillEllipse(0, 12, PAWN_RADIUS * 1.5, PAWN_RADIUS * 0.6);
-        this.graphics.lineStyle(2, outlineColor, 1);
-        this.graphics.strokeEllipse(0, 12, PAWN_RADIUS * 1.5, PAWN_RADIUS * 0.6);
-        
-        // Body (tapered middle)
-        this.graphics.fillStyle(baseColor, 1);
-        this.graphics.fillEllipse(0, 0, PAWN_RADIUS * 0.9, PAWN_RADIUS * 1.1);
-        this.graphics.lineStyle(2, outlineColor, 1);
-        this.graphics.strokeEllipse(0, 0, PAWN_RADIUS * 0.9, PAWN_RADIUS * 1.1);
-        
-        // Head (top sphere)
-        this.graphics.fillStyle(baseColor, 1);
-        this.graphics.fillCircle(0, -14, PAWN_RADIUS * 0.5);
-        this.graphics.lineStyle(2, outlineColor, 1);
-        this.graphics.strokeCircle(0, -14, PAWN_RADIUS * 0.5);
-        
-        // Highlight on head
-        this.graphics.fillStyle(highlightColor, 0.6);
-        this.graphics.fillCircle(-3, -17, PAWN_RADIUS * 0.15);
+    setUpSpriteAnim(spriteKey: string, animKey: string, startFrame: number, endFrame?: number, frameRate?: number, repeat?: number)
+    {
+        let config = {
+            key: animKey,
+            frames: this.scene.anims.generateFrameNumbers(spriteKey, {
+                start: startFrame,
+                end: endFrame ?? startFrame
+            }),
+            frameRate: frameRate ?? 10,
+            repeat: repeat ?? -1
+        };
+
+        if (!this.object.anims.create(config)) {
+            console.log('Failed to load anim from: ', spriteKey);
+        }
+    }
+
+    playWalk() {
+        let animConfig = {
+            key: 'walk_anim',
+            frameRate: 5,
+            randomFrame: true
+        };
+        this.object.anims.play(animConfig);
+    }
+
+    playShoot() {
+        this.object.anims.play('shoot_anim');
+        // Return to walk after shooting
+        this.scene.time.delayedCall(500, () => this.playWalk());
     }
 
     setLocation(newLocation: WorldLocation) {
-        this.container.setPosition(newLocation.x + CELL_SIZE / 2, newLocation.y + CELL_SIZE / 2);
+        this.object.setPosition(newLocation.x, newLocation.y);
+        this.indicatorGraphics.setPosition(newLocation.x + CELL_SIZE / 2, newLocation.y + CELL_SIZE / 2);
     }
 
     getLocation() {
-        return { x: this.container.x - CELL_SIZE / 2, y: this.container.y - CELL_SIZE / 2 };
+        return { x: this.object.x, y: this.object.y };
     }
 
     destroy() {
         if (this.indicatorTween) {
             this.scene.tweens.remove(this.indicatorTween);
         }
+        if (this.tween) {
+            this.scene.tweens.remove(this.tween);
+        }
         this.indicatorGraphics.destroy();
-        this.graphics.destroy();
-        this.container.destroy();
+        this.object.destroy();
     }
 
     moveTo(newLocation: WorldLocation) {
@@ -138,9 +145,9 @@ export class Piece
 
     select() {
         this.tween = this.scene.tweens.add({
-            targets: this.container,
-            scaleX: 1.15,
-            scaleY: 1.15,
+            targets: this.object,
+            scaleX: 0.18,
+            scaleY: 0.18,
             ease: 'Sine.easeInOut',  
             duration: 400,
             repeat: -1,
@@ -152,7 +159,7 @@ export class Piece
         if (this.tween != null) {
             this.scene.tweens.remove(this.tween);
             this.tween = null;
-            this.container.setScale(1, 1);
+            this.object.setScale(0.15);
         }
     }
 };

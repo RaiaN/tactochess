@@ -55,15 +55,8 @@ export class PieceController
         const attackAnim = async () => {
             let piece: Piece = fromCell.getPiece()!;
 
-            // Quick attack animation - scale up briefly
-            this.scene.tweens.add({
-                targets: piece.container,
-                scaleX: 1.3,
-                scaleY: 1.3,
-                duration: 150,
-                yoyo: true,
-                ease: 'Power2'
-            });
+            // Play shooting animation
+            piece.playShoot();
 
             // Destroy the target piece
             toCell.getPiece()?.destroy();
