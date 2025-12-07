@@ -3,23 +3,29 @@ import { GridCell } from '../components/GridCell';
 import { GridComponent } from '../components/GridComponent';
 import { Piece } from '../components/Piece';
 import { PieceController } from '../components/PieceController';
-import { Client, Room } from 'colyseus.js';
-import { MyState } from "../state/State"
+import { GameClient } from '../network/GameClient';
 import { Cell } from '../state/Cell';
-import { Player } from '../state/Player';
-import { discordAuth, discordSdk, setupDiscordSdk } from '../lib/discord';
+
+// Game mode constants (must match server)
+const GAME_CONSTANTS = {
+    MOVE_DISTANCE: 3,
+    ATTACK_DISTANCE: 4,
+};
 
 export class TactonGame extends Scene {
-    room: Room;
+    gameClient: GameClient;
+    myPlayerId: number = -1;
 
     grid: GridComponent;
     pieceController: PieceController;
 
-    selectedCell: GridCell | null;
+    selectedCell: GridCell | null = null;
     selectedCellIndex: number = -1;
 
-    // TODO: Move to animation 
-    // TODO: AnimController?
+    // Attack range indicators
+    attackableEnemyCells: GridCell[] = [];
+    movableCells: GridCell[] = [];
+
     pieceToMove: Piece | null;
     moveToTarget: GridCell | null;
     
@@ -39,35 +45,11 @@ export class TactonGame extends Scene {
     turnNotification: string;
     
 
-    constructor()
-    {
+    constructor() {
         super('TactonGame');
     }
-
-    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
-    /*
-        this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
-        this.camera;    //  a reference to the game camera (Phaser.Camera)
-        this.cache;     //  the game cache (Phaser.Cache)
-        this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
-        this.load;      //  for preloading assets (Phaser.Loader)
-        this.math;      //  lots of useful common math operations (Phaser.Math)
-        this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
-        this.stage;     //  the game stage (Phaser.Stage)
-        this.time;      //  the clock (Phaser.Time)
-        this.tweens;    //  the tween manager (Phaser.TweenManager)
-        this.state;     //  the state manager (Phaser.StateManager)
-        this.world;     //  the game world (Phaser.World)
-        this.particles; //  the particle manager (Phaser.Particles)
-        this.physics;   //  the physics manager (Phaser.Physics)
-        this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
-    */
-    //  You can use any of these from any function within this State.
-    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called 'world' or you'll over-write the world reference.
     
-    // Runs once at start of game
-    create () {
-
+    create() {
         // Generate in order of back to front
         var worldSize = 512;
         this.physics.world.setBounds(0, 0, worldSize, worldSize);
@@ -77,20 +59,18 @@ export class TactonGame extends Scene {
         this.grid.onCellSelected = (cell) => this.onCellSelected(cell);
 
         this.pieceController = new PieceController(this, this.grid);
-        // this.pieceController.enableCollision();
         this.pieceController.onMovementFinished = () => this.onMovementFinished();
 
         // Music
-		this.music = this.sound.add('overworldMusic');
-		this.music.loop = true;
-		this.music.play();
+        this.music = this.sound.add('overworldMusic');
+        this.music.loop = true;
+        this.music.play();
 
         // Sound effects
         this.generateSounds();
 
         // Set the controls
-        if (this.input.keyboard)
-        {
+        if (this.input.keyboard) {
             this.controls = {
                 up: this.input.keyboard.addKey('W'),
                 left: this.input.keyboard.addKey('A'),
@@ -102,220 +82,228 @@ export class TactonGame extends Scene {
 
         // Show UI
         this.showLabels();
-        this.turnNotification = 'Waiting for opponent to join the game ..';
+        this.turnNotification = 'Waiting for opponent to join the game...';
 
         this.connectToServer();
     }
 
     async connectToServer() {
-        // NOTE: Comment out Discord SDK for local testing
-        // if (!discordAuth) await setupDiscordSdk();
+        // Create game client
+        this.gameClient = new GameClient();
 
-        /*if (discordAuth == null) {
-        // throw new Error('Discord Auth is not set up!');
-            await setupDiscordSdk().then(() => this.connectToServer());
-            return;
-        }*/
+        // Set up callbacks
+        this.gameClient.setCallbacks({
+            onPlayerJoined: (player, totalPlayers, isLocalPlayer) => {
+                console.log('Player joined!', player, 'Total:', totalPlayers, 'IsLocal:', isLocalPlayer);
+                // Pieces will be spawned on gameStart when both players are ready
+            },
 
-        // NOTE: Comment out Discord check for local testing
-        // if (discordSdk.channelId == null || discordSdk.guildId == null) throw new Error('Channel ID or Guild ID is missing!');
+            onGameStart: (cells, currentTurn, myPlayerId) => {
+                console.log('Game started! My player ID:', myPlayerId, 'First turn:', currentTurn);
+                this.myPlayerId = myPlayerId;
+                
+                // Spawn all pieces now that both players are in
+                // Player 0's pieces are at cells 0-15 (top), Player 1's at cells 48-63 (bottom)
+                // isPlayer=true shows cyan indicator (my pieces), isPlayer=false shows red tint (enemy)
+                if (myPlayerId === 0) {
+                    // I'm player 0: my pieces at top (offset 0), enemy at bottom (offset 1)
+                    this.pieceController.spawnPieces(true, 0);  // My pieces - top
+                    this.pieceController.spawnPieces(false, 1); // Enemy pieces - bottom
+                } else {
+                    // I'm player 1: enemy pieces at top (offset 0), my pieces at bottom (offset 1)
+                    this.pieceController.spawnPieces(false, 0); // Enemy pieces - top
+                    this.pieceController.spawnPieces(true, 1);  // My pieces - bottom
+                }
+                
+                this.onGameStart(currentTurn);
+            },
 
-        // LOCALHOST
-        const client = new Client("ws://localhost:2567");
-        // COLYSEUS CLOUD (works only locally!)
-        // const client = new Client("ws://gb-lhr-dbaf4307.colyseus.cloud/api");
+            onCellSelected: (cellIndex, previousCellIndex) => {
+                console.log('Cell selected:', cellIndex, 'Previous:', previousCellIndex);
+                this.onCellSelected_ServerCallback(cellIndex, previousCellIndex);
+            },
 
-        // TEST PRODUCTION
-        // using 'wss' is VERY important to avoid issues related to "mixed content" and/or CORS 
-        // WORKING in web browser!
-        // const client = new Client("wss://gb-lhr-dbaf4307.colyseus.cloud");
+            onPieceMoved: (fromCellIndex, toCellIndex) => {
+                console.log('Piece moved from', fromCellIndex, 'to', toCellIndex);
+                this.onMovePiece_ServerCallback(fromCellIndex, toCellIndex);
+            },
 
-        // TEST Discord
-        // const client = new Client("wss://${location.host}/api");
-        // const client = new Client(`wss://1229829326296584223.discordsays.com/api`);
+            onPieceAttacked: (fromCellIndex, targetCellIndex) => {
+                console.log('Piece attacked from', fromCellIndex, 'to', targetCellIndex);
+                this.onAttackPiece_ServerCallback(fromCellIndex, targetCellIndex);
+            },
 
-        // this.turnNotification = (await client.http.get('/hello_world')).data;
+            onTurnChanged: (playerId) => {
+                console.log('Turn changed to player:', playerId);
+                this.nextTurn(playerId);
+            },
 
-        // The second argument has to include for the room as well as the current player
-        this.room = await client.joinOrCreate<MyState>('tactochess', {});
+            onGameOver: (winnerId) => {
+                console.log('Game over! Winner:', winnerId);
+                this.gameOver(winnerId);
+            },
 
-        let gameState: MyState = this.room.state;
+            onError: (message) => {
+                console.error('Server error:', message);
+            },
 
-        let numPlayers = 0;
-        gameState.players.onAdd((item: Player, key: string) => {
-            console.log('On player joined!');
-            
-            this.pieceController.spawnPieces(this.room.sessionId == key, numPlayers);
-            ++numPlayers;
-
-            if (numPlayers === 2) {
-                this.onJoin();
+            onDisconnect: () => {
+                console.log('Disconnected from server');
+                this.scene.start('MainMenu');
             }
         });
 
-        gameState.cells.onChange((item: Cell, key: number) => {
-            // TODO:
-            console.log('Server message: Grid modified!');
-        });
-
-        gameState.listen("currentTurn", (playerId, prevPlayerId) => {
-            console.log('Server message: Current turn (player id): ' + playerId);
-
-            this.nextTurn(playerId);
-        });
-
-        gameState.listen("selectedCellIndex", (cellIndex, prevCellIndex) => {
-            console.log('Server message: selectedCellIndex changed to: ' + cellIndex);
-
-            this.onCellSelected_ClientCallback(cellIndex, prevCellIndex);
-        });
-
-        gameState.listen("moveToCellIndex", (cellIndex, prevCellIndex) => {
-            console.log('Server message: moveToCellIndex changed to: ' + cellIndex);
-
-            this.onMovePiece_ClientCallback(cellIndex, prevCellIndex);
-        });
-
-        gameState.listen("attackPieceCellIndex", (cellIndex, prevCellIndex) => {
-            console.log('Server message: attackPieceCellIndex changed to: ' + cellIndex);
-
-            this.onAttackPiece_ClientCallback(cellIndex, prevCellIndex);
-        });
-
-        gameState.listen("winner", (winnerPlayerId) => {
-            console.log('Server message: winner set to: ' + winnerPlayerId);
-
-            if (winnerPlayerId != -1) {
-                this.gameOver(winnerPlayerId);
-            }
-        });
-
-        // TODO: Enable once game is stable!
-        this.room.onError.once(() => this.scene.start('MainMenu'));
+        // Connect to server
+        try {
+            await this.gameClient.connect('ws://localhost:2567');
+        } catch (error) {
+            console.error('Failed to connect:', error);
+            this.turnNotification = 'Failed to connect to server!';
+        }
     }
 
-    onJoin() {
-        // TODO:
-        console.log('On ALL players joined!');
+    onGameStart(currentTurn: number) {
+        this.turnNotification = this.myPlayerId === currentTurn 
+            ? 'Your turn!' 
+            : 'Wait for opponent turn...';
     }
 
     onCellSelected(cell: GridCell): boolean {
-        console.log('Cell selected: ' + cell.coordinates.x + ',' + cell.coordinates.y);
+        console.log('Cell clicked: ' + cell.coordinates.x + ',' + cell.coordinates.y);
 
-        // if (this.gameState.getCurrentTurnPlayerId() == this.gameState.getThisPlayerId()) {
-        this.handlePlayerAction(cell);
-        // }
-
-        //if (!this.pieceController.hasActiveAction()) {
-        //}
+        // Send action to server
+        this.gameClient.sendAction(cell.index);
 
         return true;
     }
 
-    handlePlayerAction(cell: GridCell) {
-        console.log('Client message: ' + cell.index);
-        this.room.send("action", {cellIndex: cell.index });
+    onCellSelected_ServerCallback(cellIndex: number, prevCellIndex: number) {
+        console.log('onCellSelected_ServerCallback:', cellIndex);
 
-    }
+        // Clear previous highlights
+        this.clearRangeIndicators();
 
-    onCellSelected_ClientCallback(cellIndex: number, prevCellIndex: number) {
-        console.log('onCellSelected_ClientCallback')
+        // Unselect previous cell
+        if (this.selectedCell) {
+            this.selectedCell.unselect();
+        }
 
-        // 1. select phase
-        let cell: GridCell = this.grid.getCellByIndex(cellIndex);
-
-        if (cellIndex == -1) {
-            console.log('Unselecting cell: ' + cellIndex);
-            this.selectedCell?.unselect();
+        if (cellIndex === -1) {
             this.selectedCell = null;
             this.selectedCellIndex = -1;
             return;
         }
 
-        if (this.selectedCellIndex == -1) {
-            // select piece
-            this.selectedCell = cell;
-            this.selectedCell.select();
+        // Select new cell
+        let cell = this.grid.getCellByIndex(cellIndex);
+        this.selectedCell = cell;
+        this.selectedCellIndex = cellIndex;
+        cell.select();
 
-            this.selectedCellIndex = cellIndex;
+        // Show range indicators if it's my turn and my piece is selected
+        if (this.gameClient.isMyTurn() && 
+            this.gameClient.getCellOccupier(cellIndex) === this.myPlayerId) {
+            this.showRangeIndicators(cell);
+        }
+    }
 
-            console.log('On new cell selected (validated by server!): ' + cellIndex);
-        // 2. move/attack phase
-        } else {
-            let state: MyState = this.room.state;
-            let cellOccupier: number = state.cells.toArray()[cellIndex].occupiedBy;
-            let thisPlayerId: number = this.getThisPlayerId();
+    // Show which cells can be moved to or attacked
+    showRangeIndicators(fromCell: GridCell) {
+        this.clearRangeIndicators();
 
-            if (this.selectedCell != null && cellOccupier == thisPlayerId) {
-                // select new piece
-                this.selectedCell.unselect();
-                this.selectedCell = cell;
-                this.selectedCell.select();
+        const fromX = fromCell.coordinates.x;
+        const fromY = fromCell.coordinates.y;
 
-                this.selectedCellIndex = cellIndex;
+        for (let i = 0; i < 64; i++) {
+            const cell = this.grid.getCellByIndex(i);
+            const toX = cell.coordinates.x;
+            const toY = cell.coordinates.y;
+            const distance = Math.abs(fromX - toX) + Math.abs(fromY - toY);
 
-                console.log('On new cell selected (validated by server!): ' + cellIndex);
+            if (distance === 0) continue; // Skip the selected cell itself
+
+            const occupier = this.gameClient.getCellOccupier(i);
+
+            // Empty cell within move range
+            if (occupier === -1 && distance <= GAME_CONSTANTS.MOVE_DISTANCE) {
+                cell.showMoveIndicator();
+                this.movableCells.push(cell);
+            }
+            // Enemy cell within attack range
+            else if (occupier !== -1 && occupier !== this.myPlayerId && distance <= GAME_CONSTANTS.ATTACK_DISTANCE) {
+                cell.showAttackIndicator();
+                this.attackableEnemyCells.push(cell);
             }
         }
     }
 
-    onMovePiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
-        console.log('onMovePiece_ClientCallback')
+    clearRangeIndicators() {
+        for (const cell of this.movableCells) {
+            cell.clearIndicator();
+        }
+        for (const cell of this.attackableEnemyCells) {
+            cell.clearIndicator();
+        }
+        this.movableCells = [];
+        this.attackableEnemyCells = [];
+    }
 
-        let gameState: MyState = this.room.state;
-        let fromCellIndex: number = gameState.moveFromCellIndex;
+    onMovePiece_ServerCallback(fromCellIndex: number, toCellIndex: number) {
+        console.log('onMovePiece_ServerCallback:', fromCellIndex, '->', toCellIndex);
 
-        if (fromCellIndex == -1 || cellIndex == -1) {
+        if (fromCellIndex === -1 || toCellIndex === -1) {
             console.log('Invalid move indices, skipping');
             return;
         }
 
-        let fromCell: GridCell = this.grid.getCellByIndex(fromCellIndex);
-        let toCell: GridCell = this.grid.getCellByIndex(cellIndex);
+        let fromCell = this.grid.getCellByIndex(fromCellIndex);
+        let toCell = this.grid.getCellByIndex(toCellIndex);
 
-        console.log(`Moving player piece from ${fromCellIndex} to ${cellIndex} (validated by server!)`);
+        console.log(`Moving piece from ${fromCellIndex} to ${toCellIndex}`);
 
+        // Move the piece visually
         this.pieceController.movePiece(fromCell, toCell);
 
+        // Update cell piece references
         toCell.setPiece(fromCell.getPiece());
-
-        // drop active selection on the source cell
         fromCell.unselect();
         fromCell.setPiece(null);
 
-        // also clear local selection state if it was selected
-        if (this.selectedCell != null) {
+        // Clear selection state
+        this.clearRangeIndicators();
+        if (this.selectedCell) {
             this.selectedCell.unselect();
             this.selectedCell = null;
             this.selectedCellIndex = -1;
         }
     }
 
-    async onAttackPiece_ClientCallback(cellIndex: number, prevCellIndex: number) {
-        console.log('onAttackPiece_ClientCallback');
+    async onAttackPiece_ServerCallback(fromCellIndex: number, targetCellIndex: number) {
+        console.log('onAttackPiece_ServerCallback:', fromCellIndex, '->', targetCellIndex);
 
-        let gameState: MyState = this.room.state;
-        let fromCellIndex: number = gameState.attackFromCellIndex;
-
-        if (fromCellIndex == -1 || cellIndex == -1) {
+        if (fromCellIndex === -1 || targetCellIndex === -1) {
             console.log('Invalid attack indices, skipping');
             return;
         }
 
-        let fromCell: GridCell = this.grid.getCellByIndex(fromCellIndex);
-        let targetCell: GridCell = this.grid.getCellByIndex(cellIndex);
+        let fromCell = this.grid.getCellByIndex(fromCellIndex);
+        let targetCell = this.grid.getCellByIndex(targetCellIndex);
 
-        console.log(`Attacking enemy piece at ${cellIndex} from ${fromCellIndex}`);
+        console.log(`Attacking enemy piece at ${targetCellIndex} from ${fromCellIndex}`);
 
+        // Play attack animation and destroy target piece
         await this.pieceController.attackPiece(fromCell, targetCell);
 
         this.attackSound.play();
 
-        // drop active selection on the source cell
-        fromCell.unselect();
+        // IMPORTANT: Clear the target cell's piece reference (fixes bug #1)
+        // The piece is destroyed, so the cell should no longer reference it
+        targetCell.setPiece(null);
 
-        // also clear local selection state if it was selected
-        if (this.selectedCell != null) {
+        // Clear selection state
+        this.clearRangeIndicators();
+        fromCell.unselect();
+        if (this.selectedCell) {
             this.selectedCell.unselect();
             this.selectedCell = null;
             this.selectedCellIndex = -1;
@@ -323,34 +311,26 @@ export class TactonGame extends Scene {
     }
 
     onMovementFinished() {
-        // Move animations disabled!
-        // this.nextTurn();
-
-        // this.notification = 'Current turn: ' + this.gameState.getCurrentPlayer();
-
-    }
-
-    getThisPlayerId(): number {
-        let gameState: MyState = this.room.state;
-        return gameState.players.get(this.room.sessionId)!.playerId;
+        // Movement animations handled
     }
 
     isThisPlayerTurn(playerId: number): boolean {
-        let gameState: MyState = this.room.state;
-        return gameState.players.get(this.room.sessionId)?.playerId == playerId;
+        return this.myPlayerId === playerId;
     }
 
     nextTurn(playerId: number) {
-        this.turnNotification = this.isThisPlayerTurn(playerId) ? 'Your turn!' : 'Wait for opponent turn..';
+        this.turnNotification = this.isThisPlayerTurn(playerId) 
+            ? 'Your turn!' 
+            : 'Wait for opponent turn...';
 
-        // drop any selection!
+        // Clear any selection and indicators when turn changes
+        this.clearRangeIndicators();
         this.selectedCell?.unselect();
         this.selectedCell = null;
         this.selectedCellIndex = -1;
     }
 
-    // Checks for actions and changes
-    update () {
+    update() {
         this.pieceController.update();
 
         this.notificationLabel.text = this.turnNotification;
@@ -358,7 +338,6 @@ export class TactonGame extends Scene {
     }
 
     showLabels() {
-
         var text = '0';
         const style = { font: '16px Arial', fill: '#FFFF00', align: 'center' };
 
@@ -366,8 +345,7 @@ export class TactonGame extends Scene {
         this.notificationLabel = this.add.text(screenCenterX, 25, text, style);
     }
 
-    setUpSpriteAnim(sprite: Phaser.Physics.Arcade.Sprite, spriteKey: string, animKey: string, startFrame: integer, endFrame?: integer, frameRate?: integer, repeat?: integer)
-    {
+    setUpSpriteAnim(sprite: Phaser.Physics.Arcade.Sprite, spriteKey: string, animKey: string, startFrame: integer, endFrame?: integer, frameRate?: integer, repeat?: integer) {
         let config = {
             key: animKey,
             frames: this.anims.generateFrameNumbers(spriteKey, {
@@ -381,8 +359,7 @@ export class TactonGame extends Scene {
         sprite.anims.create(config);
     }
 
-    setUpGlobalAnim(spriteKey: string, animKey: string, startFrame: integer, endFrame?: integer, frameRate?: integer, repeat?: integer)
-    {
+    setUpGlobalAnim(spriteKey: string, animKey: string, startFrame: integer, endFrame?: integer, frameRate?: integer, repeat?: integer) {
         let config = {
             key: animKey,
             frames: this.anims.generateFrameNumbers(spriteKey, {
@@ -396,26 +373,26 @@ export class TactonGame extends Scene {
         this.anims.create(config);
     }
 
-    generateSounds () {
+    generateSounds() {
         this.attackSound = this.sound.add('attackSound');
         this.playerSound = this.sound.add('playerSound');
     }
 
-    gameOver(playerId: number) {
+    gameOver(winnerId: number) {
         this.notificationLabel.setFontSize(20);
         
-        if (this.getThisPlayerId() == playerId) {
+        if (this.myPlayerId === winnerId) {
             this.turnNotification = 'Victory!';
             this.notificationLabel.setColor('#FFFFFF');
         } else {
             this.turnNotification = 'Defeat!';
         }
 
-		this.music.stop();
-		this.music.destroy();
+        this.music.stop();
+        this.music.destroy();
 
         setTimeout(() => {
             this.scene.start('GameOver');
         }, 2000);
     }
-};
+}

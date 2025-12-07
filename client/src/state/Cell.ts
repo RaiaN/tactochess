@@ -1,7 +1,6 @@
-import { Schema, type } from "@colyseus/schema";
-
-export class Cell extends Schema {
-    @type("number") x: number;
-    @type("number") y: number;
-    @type("number") occupiedBy: number;
+// Simple Cell type (no Colyseus)
+export interface Cell {
+    x: number;
+    y: number;
+    occupiedBy: number; // -1 = empty, 0 = player1, 1 = player2
 }

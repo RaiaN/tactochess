@@ -4,9 +4,8 @@ import {defineConfig} from 'vite';
 export default defineConfig({
   server: {
     /**
-       * When developing locally - proxies "/api" to the local Colyseus server.
-       * This mimics the behaviour of the production server.
-       */
+     * When developing locally - proxies "/api" to the game server.
+     */
     proxy: {
       '/api': {
         target: 'http://localhost:2567',

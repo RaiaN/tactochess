@@ -1,5 +1,5 @@
 {
-  "name": "phaser-discord-template",
+  "name": "tactochess-client",
   "version": "0.0.1",
   "type": "module",
   "scripts": {
@@ -10,13 +10,11 @@
   },
   "dependencies": {
     "@discord/embedded-app-sdk": "^1.1.2",
-    "colyseus.js": "^0.15.18",
-    "phaser": "^3.80.1"
-    
+    "phaser": "^3.80.1",
+    "socket.io-client": "^4.7.4"
   },
   "devDependencies": {
     "vite": "^5.2.9",
-    "typescript": "^5.2.2",
-    "colyseus": "^0.15.17"
+    "typescript": "^5.2.2"
   }
 }
